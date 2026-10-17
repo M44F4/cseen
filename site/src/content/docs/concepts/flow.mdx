@@ -1,0 +1,216 @@
+---
+title: Diagrams and flow
+description: Flowcharts, trees and networks that place themselves, with edges that trace on and carry a pulse.
+sidebar:
+  order: 9
+---
+
+import Demo from '../../../components/Demo.astro';
+
+A **diagram** is boxes and arrows that you do not have to place. You say what is connected to what, and the layout decides where everything goes. It lives in its own pack, `@@pkg@@/flow`, so a page that does not draw diagrams does not load it.
+
+<Demo id="flow/decision" />
+
+## Your first diagram
+
+```ts
+import { Scene } from '@@pkg@@';
+import { diagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [360, 260] });
+const d = s.add(diagram());
+
+d.node('in', 'request', { shape: 'round' });
+d.node('ok', 'valid?', { shape: 'diamond', role: 'accent' });
+d.node('go', 'handle');
+d.node('no', 'reject');
+
+d.edge('in', 'ok');
+d.edge('ok', 'go', { label: 'yes' });
+d.edge('ok', 'no', { label: 'no' });
+```
+
+`d.node(id, label, options)` adds a box and `d.edge(from, to, options)` joins two of them by id. Each call places everything again, so the order you add things in does not matter. Use `view: 'front'`: a diagram lies flat on the page, with x to the right and z up.
+
+A node can be a `box` (the default), a `round` box for the start and end of a flow, a `diamond` for a decision or a `circle` for a point in a network. A label can have several lines: put `\n` where the line breaks. The box grows to fit its words.
+
+## Three layouts
+
+`layout` says how the diagram is placed.
+
+| Layout | For | What it does |
+|---|---|---|
+| `layered` (default) | flows and pipelines | puts every edge pointing forward, in ranks, with right-angled edges that go around the boxes in between |
+| `tree` | hierarchies | centres each parent over its children |
+| `force` | networks | linked nodes pull together and all nodes push apart, then spread until none touch |
+
+`direction` is `down` (the first node at the top) or `right` (the first node on the left). `gap` is the space between boxes along the flow and across it, and `edges` is `'elbow'` or `'straight'`.
+
+<Demo id="flow/pipeline" />
+
+A graph with a cycle is fine: the layout turns the edges that close the loop round, only to place things, and draws them back to where they belong.
+
+Layouts do not use chance. The `force` layout starts from a fixed ring and runs a fixed number of steps, so the same graph always lands in the same place, on the server and in the browser. `seed` starts it from a different arrangement if you do not like the first.
+
+## Trees and flowcharts from data
+
+Two shortcuts build a whole diagram from a plain description.
+
+```ts
+import { Scene } from '@@pkg@@';
+import { treeDiagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [360, 240] });
+s.add(treeDiagram({ label: 'app', children: [
+  { label: 'ui', children: [{ label: 'forms' }, { label: 'tables' }] },
+  { label: 'api' },
+] }));
+```
+
+<Demo id="flow/tree" />
+
+`flowchart` takes a list of steps. A step goes to the next one in the list unless it says where else, an `end` goes nowhere, and a `decision` lists its branches, each with the word to put on the arrow.
+
+```ts
+import { Scene } from '@@pkg@@';
+import { flowchart } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [360, 300] });
+s.add(flowchart([
+  { label: 'start', kind: 'start' },
+  { label: 'signed in?', kind: 'decision', to: [['home', 'yes'], ['sign in', 'no']] },
+  { label: 'sign in', to: ['signed in?'] },
+  { label: 'home', kind: 'end' },
+]));
+```
+
+A step's id is its label unless you give it an `id`.
+
+## Animating a diagram
+
+Nodes and edges are ordinary scene nodes, so a timeline animates them. A node takes `opacity`, and an edge takes `draw`, from 0 (nothing) to 1 (all of it).
+
+```ts
+import { Scene, Timeline, fadeIn, draw, stagger } from '@@pkg@@';
+import { diagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [360, 240] });
+const d = s.add(diagram({ layout: 'force' }));
+for (const id of ['api', 'db', 'cache', 'queue']) d.node(id, id);
+d.edge('api', 'db'); d.edge('api', 'cache'); d.edge('api', 'queue');
+
+const tl = new Timeline();
+tl.play(stagger(0.2, ...[...d.nodes.values()].map((n) => fadeIn(n, 0.5))));
+tl.play(stagger(0.15, ...d.edges.map((e) => draw(e, 0.5))));
+tl.lockFit(s);
+```
+
+<Demo id="flow/network" />
+
+Add every node and edge before you build the timeline. The layout runs when you add something, and a timeline remembers where things were when it first played.
+
+Placing a big diagram after every call is slow, most of all with `force`. Wrap the adding in `d.batch(() => { ... })` and the layout runs once, at the end. `flowchart` and `treeDiagram` already do this.
+
+## A pulse along an edge
+
+`edge.rail()` gives the route of an edge as points a `pulse` can ride, and `d.route(from, to)` finds the edge by its ends. To follow a path of several edges, join their rails.
+
+```ts
+import { Scene, Timeline, pulse, tween } from '@@pkg@@';
+import { diagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [420, 150] });
+const d = s.add(diagram({ direction: 'right' }));
+d.node('a', 'source', { shape: 'round' });
+d.node('b', 'build');
+d.node('c', 'ship', { role: 'accent' });
+d.edge('a', 'b'); d.edge('b', 'c');
+
+const ping = s.add(pulse(d.edges.flatMap((e) => e.rail()), { trail: 5 }));
+const tl = new Timeline();
+tl.play(tween(ping, { along: 1 }, { duration: 2.5, from: { along: 0 }, ease: 'linear' }));
+tl.lockFit(s);
+```
+
+An edge also takes `flow: true` for dashes that travel along it, `dash` for a fixed pattern and `arrow` to choose the ends.
+
+## Linking a diagram to something else
+
+A diagram is made of scene nodes, so anything can be attached to it. `d.at(id, side)` is a point on a node that follows it, on the `center` or the middle of its `top`, `bottom`, `left` or `right`. Use it as the end of a [`link`](/reference/core/#link).
+
+```ts
+import { Scene, link } from '@@pkg@@';
+import { laptop } from '@@pkg@@/devices';
+import { diagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [420, 262], padding: 8 });
+const d = s.add(diagram({ direction: 'right', gap: [1.1, 0.6] }));
+d.node('api', 'api', { role: 'accent' });
+d.node('db', 'database');
+d.edge('api', 'db', { label: 'sql' });
+
+const lt = s.add(laptop({ at: [-5.4, 0, -0.6], width: 2.2 }));
+s.add(link(lt.anchor([0.4, 0, 0.9]), d.at('api', 'left'), { bend: 0.3, role: 'accent', flow: 1 }));
+```
+
+<Demo id="flow/linked" />
+
+## Moving a node
+
+Edges follow their nodes. Move a node with `set('pos', ...)` or tween its `pos`, and the edges at it, their labels and their `rail()` are routed again between the nodes' current positions on every frame. The layout does not run again, and nothing is routed while nothing moves.
+
+```ts
+import { Scene, Timeline, tween } from '@@pkg@@';
+import { diagram } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [420, 200] });
+const d = s.add(diagram({ direction: 'right' }));
+d.node('a', 'source'); d.node('b', 'build'); d.node('c', 'ship');
+d.edge('a', 'b'); d.edge('b', 'c');
+
+const tl = new Timeline();
+tl.play(tween(d.nodes.get('b')!, { pos: [0, 0, -2] }, { duration: 1 }));
+tl.lockFit(s);
+```
+
+## Sequence diagrams
+
+`sequence` draws who talks to whom, in order. Give it the participants, left to right, and the messages from the top down. Each participant is a box with a dashed lifeline below it, and each message is an arrow between two lifelines.
+
+```ts
+import { Scene } from '@@pkg@@';
+import { sequence } from '@@pkg@@/flow';
+
+const s = new Scene({ view: 'front', size: [420, 340] });
+const q = s.add(sequence({
+  participants: ['browser', 'api', 'db'],
+  messages: [
+    { from: 'browser', to: 'api', label: 'GET /user' },
+    { from: 'api', to: 'db', label: 'select' },
+    { from: 'db', to: 'api', label: 'row', reply: true },
+    { from: 'api', to: 'api', label: 'render' },
+    { note: 'cached for 60 s', over: 'api' },
+    { from: 'api', to: 'browser', label: '200', reply: true },
+  ],
+}));
+```
+
+<Demo id="flow/sequence" />
+
+A message with `reply: true` is dashed. A message whose `from` and `to` are the same loops back to its own lifeline. A `{ note, over }` entry puts a box on a lifeline, or across two when `over` is a pair. A participant can be `{ id, label }` when the box should say more than the id.
+
+The spacing is worked out from the labels, so none of them overlap: lifelines move apart as far as the longest label between them needs. The result has `messages` (the arrows in order), `nodes` (the participant boxes by id), `lifelines` and `notes`. They are scene nodes like those of a diagram, so `draw(q.messages[0], 0.5)` traces a message on and `pulse(q.messages[0].rail())` sends a dot along it.
+
+## Colour
+
+A node or edge takes a `role`, like everything else: `ink`, `faint`, `accent`, `s1` to `s8`, or a role you define in CSS. `diagram({ role })` sets the default for all of them. The colours come from the theme, so a diagram follows light and dark and any [theme](/concepts/theming/) with no extra work.
+
+## Limits
+
+- **The layout runs when you add something, not when you move a node.** A node you move by hand (`pos`) stays where you put it, and its edges are routed again between the nodes where they are now: a line, or with `elbow` a right-angled path between the facing sides. These routes are simpler than the layout's own (an edge that went around other boxes may now cross them), and an edge whose nodes are both back in their laid-out places gets the layout's route again.
+- **Sizes are estimated from the text.** The pack assumes a monospace font and sizes each box from the number of characters in its longest line. Break a long label across lines with `\n`.
+- **A tree has one parent per node.** If a node has several parents, or the edges form a cycle, it hangs under the first edge that reaches it. The other edges are still drawn, between the places where their nodes ended up.
+- **Ids must be different.** Two nodes with the same id are refused. `flowchart` uses the label as the id, so give a step an `id` if its label repeats.
+- **An edge needs two different nodes.** A node that points at itself is refused with an error.
+- **Sequence diagrams are placed once.** `sequence` lays out its boxes, lifelines and arrows when you make it. They are ordinary scene nodes, but moving a participant does not move its lifeline or messages.
+- **Nodes lie in one plane.** A diagram is flat. Put it in a 3D scene by rotating the whole diagram, as you would any node.

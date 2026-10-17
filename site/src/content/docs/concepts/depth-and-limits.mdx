@@ -1,0 +1,43 @@
+---
+title: Depth sorting and limits
+description: What SVG can and cannot do, and how faces are ordered.
+sidebar:
+  order: 6
+---
+
+SVG has no depth buffer. Faces are drawn in order, back to front, so @@name@@ has to decide the order.
+
+## How it orders
+
+It uses exact plane tests: for two faces it asks which one is in front of the other's plane from the camera's point of view, then orders the whole scene with those answers. This handles floors, walls, boxes and keyboards well.
+
+You can help it:
+
+- **Groups are sort units.** Everything inside a group is ordered as one thing, which is cheaper and often what you mean. A device is a group.
+- **`layer`** orders whole groups of things regardless of depth: lower draws first. Labels sit above geometry by default.
+
+## What it cannot do
+
+- **Faces that pierce each other** are cut along the crossing and the pieces drawn in the right order, so a wall through a floor or a box sunk into a plane looks right. Of two faces that cross, the smaller on screen is cut. Only separate flat, convex faces are cut: faces of one group (a box, a mesh) are ordered by depth among themselves and are never split, a graze under 5% of the face size is ignored, and the number of pieces is capped, so a scene with very many piercing faces can still show a ragged edge. The cut itself is not outlined.
+- **Large meshes** (a few thousand faces) are slow as SVG. A full keyboard is about 50 ms per frame, so use a smaller layout such as `tkl` or `60` for live animation.
+- **Perspective on imported SVGs** and on charts placed on planes is an approximation.
+- **The sketch look** affects lines and surfaces, not the insides of charts and screens.
+
+## Checking a scene
+
+A frame tells you how well it was ordered:
+
+```ts
+import { Scene, box } from '@@pkg@@';
+
+const s = new Scene();
+s.add(box({ at: [0, 0, 0] }), box({ at: [2, 0, 0] }));
+const frame = s.frame();
+console.log(frame.exact, frame.cycles);
+```
+
+`exact` is false when the scene was too large for exact ordering and fell back to depth. `cycles` counts groups of faces that overlap in a ring and cannot be ordered exactly.
+
+## Static rendering and cost
+
+A scene costs by its number of faces and by how often you redraw it. `mount` keeps each drawn item's element and replaces only the ones whose markup changed, pauses off screen and respects `maxFps`. When a scene is heavy, lower the frame rate or use a smaller version while the reader drags.

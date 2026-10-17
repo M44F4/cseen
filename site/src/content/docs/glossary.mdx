@@ -1,0 +1,35 @@
+---
+title: Glossary
+description: The words @@name@@ uses, in one place.
+sidebar:
+  order: 8
+---
+
+The words @@name@@ uses, and what each means here. Alphabetical.
+
+| Term | Meaning |
+|---|---|
+| **alpha** | How see-through a surface is, from 0 to 1. Faces behind show through. See [`box`](/reference/core/#box) and `surface`. |
+| **anchor** | A point on an object that follows it when it moves. `a.anchor([x, y, z])`, used to attach arrows and links. |
+| **at** | Where an object stands, as `[x, y, z]`. For solids and devices it is the centre of the base. |
+| **camera** | What the scene is seen through: parallel (`view: 'iso'`, `{ yaw, pitch }`) or perspective (`Camera.perspective`). See [coordinates and cameras](/start/coordinates-and-cameras/). |
+| **chapter** | A named step on a timeline, `tl.chapter('move')`, that a reader can jump to. |
+| **construction** | A flat drawing made of parts that draw on, fill, turn and fade, for showing how a shape is made. `new Construct(...)`. See [Constructions](/concepts/constructions/). |
+| **device** | A drawn object that can carry a screen: monitor, laptop, phone and so on. See the [gallery](/gallery/devices/). |
+| **fit** | How the scene is framed. By default it refits to its contents each frame; `fit: 'sphere'` frames the bounding sphere, and `tl.lockFit(s)` fixes it for a whole timeline. |
+| **group** | Nodes that move, turn and scale together. See [`group`](/reference/core/#group). |
+| **link** | A curved arrow between two objects or anchors that follows them. A `pulse` can ride it. |
+| **node** | Anything in a scene: a shape, a device, a label, a chart. Every node can be placed, animated and themed. |
+| **opacity** | How visible a whole object is, from 0 to 1. Unlike alpha it fades the object and everything on it. |
+| **pack** | A part of the library with its own import: `devices`, `ui`, `charts`, `waves`, `optics`, `math`, `flow`. The core has none. See [packs](/concepts/packs/). |
+| **part** | One outline or text tag of a construction. Its `draw`, `fill`, `spin`, `scale`, `dx`, `dy` and `op` can be animated. |
+| **player** | What `mount` returns: it plays, pauses and redraws a figure in the page. |
+| **reverse** | `reverse(anim)` plays an animation backwards. Every tween needs a `from`. |
+| **role** | A name for a colour that CSS decides: `accent`, `ink`, `faint`, `warm`, `cool`, `s1` to `s8`. You never pass a hex colour, so every theme works. See [theming](/concepts/theming/). |
+| **screen point** | `scene.screen(p)`: where a point of the scene lands in the picture, to line up something on the page with the figure. |
+| **scene** | The thing you build: a camera and a tree of nodes. It draws to SVG at any moment in time. |
+| **still** | A scene drawn at one moment as a plain SVG string, with `renderStill`. |
+| **timeline** | A list of animations played in order. A scene at time *t* is the scene with the timeline replayed to *t*, so it can be scrubbed. |
+| **tween** | One animation of one or more properties of a node, over a duration, with an easing. |
+| **view** | The camera of a scene: `'iso'`, `'front'`, `'side'`, `'top'`, `{ yaw, pitch }` or a perspective camera. |
+| **x, y, z** | Always right, into the scene, up. See [coordinates](/start/coordinates-and-cameras/). |

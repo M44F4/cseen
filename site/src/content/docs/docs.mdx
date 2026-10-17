@@ -1,0 +1,38 @@
+---
+title: Documentation
+description: Where everything is, and which part to read for what you are doing.
+sidebar:
+  label: Overview
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+import { site } from '../../config.ts';
+
+@@name@@ is documented in five parts. Pick the one that matches what you are doing.
+
+<CardGrid>
+  <LinkCard title="Get started" description="A guided path: install, build one scene, learn the coordinates. Read once, in order." href={site.base + "/start/introduction/"} />
+  <LinkCard title="Concepts" description="How it works: scenes and nodes, the timeline, themes, text, depth sorting and packs." href={site.base + "/concepts/scene-and-nodes/"} />
+  <LinkCard title="Guides" description="Do one thing: embed in HTML, Astro or React, render on the server, make a themed chart." href={site.base + "/guides/embed-html/"} />
+  <LinkCard title="Gallery" description="Everything you can draw, with the code. Click a card to turn it and copy it." href={site.base + "/gallery/core/"} />
+  <LinkCard title="Reference" description="Every export of every pack with its signature and options, generated from the code." href={site.base + "/reference/"} />
+</CardGrid>
+
+## I want to
+
+| I want to | Go to |
+|---|---|
+| Put a figure on a page | [Embed in plain HTML](/guides/embed-html/), [Astro](/guides/astro/) or [React](/guides/react/) |
+| Draw something and see it change | The [playground](/playground/) |
+| Find the call for something I know exists | The [cheat sheet](/cheat-sheet/) |
+| See what a device or chart looks like | The [gallery](/gallery/devices/) |
+| Match my site's colours | [Theming](/concepts/theming/) |
+| Animate a scene | [Timeline and animation](/concepts/timeline/) |
+| Render at build time, with no browser | [Render on the server](/guides/server-rendering/) |
+| Make a chart that follows my theme | [Make a themed chart](/guides/themed-chart/) |
+| Know what it cannot do | [Depth sorting and limits](/concepts/depth-and-limits/) |
+| Look up an option or a type | The [reference](/reference/) |
+
+## New here
+
+Read [Introduction](/start/introduction/), then [Your first scene](/start/first-scene/). Both are short, and every figure on them is live.

@@ -1,0 +1,75 @@
+---
+title: Make a themed chart
+description: A chart that follows any palette, with the colours you choose where it matters.
+sidebar:
+  order: 5
+---
+
+import Demo from '../../../components/Demo.astro';
+
+Charts are drawn on a plane and coloured from the theme, so you rarely choose a colour.
+
+```ts
+import { Scene } from '@@pkg@@';
+import { bars } from '@@pkg@@/charts';
+
+const s = new Scene({ view: 'front', size: [420, 262], padding: 6 });
+s.add(bars({
+  data: { Web: [12, 19, 7, 15], App: [8, 11, 14, 9] },
+  labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+  title: 'Signups',
+}));
+```
+
+Each series takes the next series colour, which is the accent turned around the colour wheel. Change the theme and the chart follows.
+
+<Demo id="charts/grouped" />
+
+## Choosing colours
+
+A palette is a name or a list of roles and colours:
+
+```ts
+import { Scene } from '@@pkg@@';
+import { donut, bars } from '@@pkg@@/charts';
+
+const s = new Scene({ view: 'front', size: [420, 262], padding: 6 });
+s.add(donut({
+  data: [['Done', 70], ['Open', 20], ['Blocked', 10]],
+  palette: ['accent', 's2', 'faint'],        // roles, so they still follow the theme
+  labelValues: true,
+}));
+```
+
+- `palette: 'sequential'` runs one hue from light to strong, for values.
+- `palette: 'diverging'` runs two hues around zero.
+- `highlight: 2` picks one bar out in the accent and greys the rest.
+
+## Say something with it
+
+```ts
+import { Scene } from '@@pkg@@';
+import { bars } from '@@pkg@@/charts';
+
+const s = new Scene({ view: 'front', size: [420, 262], padding: 6 });
+s.add(bars({
+  data: [['Rust', 82], ['Go', 64], ['TypeScript', 91], ['Python', 77]],
+  horizontal: true,
+  labelValues: true,
+  highlight: 2,
+}));
+```
+
+<Demo id="charts/horizontal" />
+
+## Animate it in
+
+A chart has a `grow` property from 0 to 1 and a `data` property that tweens between datasets. Put it in a scene and it stands up:
+
+<Demo id="charts/live-chart" />
+
+## On a screen
+
+A chart is a plane, so it can sit on a device:
+
+<Demo id="charts/dashboard" />

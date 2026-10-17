@@ -1,0 +1,200 @@
+---
+// Replaces Starlight's header: brand, the five places a visitor wants to go, then search, source and theme.
+// Below 50rem the docs use Starlight's own menu button (it opens the sidebar); the landing page has no
+// sidebar, so it gets its own small menu.
+import Search from 'virtual:starlight/components/Search';
+import SocialIcons from 'virtual:starlight/components/SocialIcons';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import { BASE, toPlayground } from '../lib/links.ts';
+import { byId } from '../demos/index.ts';
+import { exampleIds } from '../lib/examples.ts';
+import Effects from './Effects.astro';
+import Logo from './Logo.astro';
+import LogoSprite from './LogoSprite.astro';
+
+const { hasSidebar, sidebar } = Astro.locals.starlightRoute;
+const path = Astro.url.pathname.replace(BASE, '');
+const links = [
+  { label: 'Docs', href: '/docs/', match: ['/docs/', '/start/', '/concepts/', '/guides/', '/cheat-sheet/'] },
+  { label: 'Examples', href: '/examples/', match: ['/examples/'] },
+  { label: 'Gallery', href: '/gallery/core/', match: ['/gallery/'] },
+  { label: 'Playground', href: '/playground/', match: ['/playground/'] },
+  { label: 'Reference', href: '/reference/', match: ['/reference/'] },
+].map((l) => ({ ...l, current: l.match.some((m) => path.startsWith(m)) }));
+
+// hovering a place shows what is inside it, taken from the sidebar so the two never disagree
+type Entry = { type: 'link'; label: string; href: string } | { type: 'group'; label: string; entries: Entry[] };
+const groups = (sidebar as Entry[]).filter((e): e is Extract<Entry, { type: 'group' }> => e.type === 'group');
+const pick = (...labels: string[]) => groups.filter((g) => labels.includes(g.label))
+  .map((g) => ({ label: g.label, links: g.entries.filter((e): e is Extract<Entry, { type: 'link' }> => e.type === 'link') }))
+  .filter((g) => g.links.length);
+const menus: Record<string, ReturnType<typeof pick>> = {
+  Docs: pick('Get started', 'Concepts', 'Guides'),
+  Examples: [{ label: 'Examples', links: exampleIds.map((id) => { const d = byId.get(id); return { type: 'link' as const, label: d?.title ?? id, href: d ? toPlayground(d.code(d.defaults)) : `${BASE}/examples/` }; }) }],
+  Gallery: pick('Gallery'),
+  Reference: pick('Reference'),
+};
+---
+<Effects />
+<LogoSprite />
+<div class="cn-header">
+  <a class="cn-brand" href={`${BASE}/`} aria-label="cseen, home"><Logo variant="full" class="cn-brand-full" label="cseen" /><Logo variant="mark" class="cn-brand-mark" label="cseen" /></a>
+  <nav class="cn-nav" aria-label="Main">
+    {links.map((l) => {
+      const menu = menus[l.label] ?? [];
+      return (
+        <div class="cn-item">
+          <a href={`${BASE}${l.href}`} aria-current={l.current ? 'page' : undefined} aria-haspopup={menu.length ? 'true' : undefined}>{l.label}</a>
+          {menu.length > 0 && (
+            <div class="cn-pop"><div class={`cn-pop-in${menu.length === 1 ? ' cn-single' : ''}`}>
+              {menu.map((g, i) => (
+                <div class="cn-col" style={`--i:${i}`}>
+                  {(menu.length > 1 || g.label !== l.label) && <p>{g.label}</p>}
+                  {g.links.map((e) => <a href={e.href} aria-current={e.href === Astro.url.pathname ? 'page' : undefined}>{e.label}</a>)}
+                </div>
+              ))}
+            </div></div>
+          )}
+        </div>
+      );
+    })}
+  </nav>
+  <div class="cn-tools">
+    <Search />
+    <div class="cn-social"><SocialIcons /></div>
+    <div class="cn-theme"><ThemeSelect /></div>
+    {!hasSidebar && (
+      <button type="button" class="cn-burger" aria-expanded="false" aria-controls="cn-drawer" aria-label="Menu" data-cn-burger>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path class="cn-bars" d="M4 7h16M4 12h16M4 17h16"/><path class="cn-x" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    )}
+  </div>
+  {!hasSidebar && (
+    <div class="cn-drawer" id="cn-drawer" data-cn-drawer hidden>
+      {links.map((l) => <a href={`${BASE}${l.href}`} aria-current={l.current ? 'page' : undefined}>{l.label}</a>)}
+      <div class="cn-drawer-foot">
+        <div class="cn-drawer-theme"><ThemeSelect /></div>
+        <div class="cn-drawer-source"><SocialIcons /></div>
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  // a link in the top bar lands on a page whose sidebar item may be below the fold: bring it into view
+  const here = document.querySelector<HTMLElement>('.sidebar-pane a[aria-current="page"]');
+  const pane = document.querySelector<HTMLElement>('.sidebar-pane');
+  if (here && pane) {
+    const r = here.getBoundingClientRect(), p = pane.getBoundingClientRect();
+    if (r.top < p.top + 40 || r.bottom > p.bottom - 40) pane.scrollTop += r.top - p.top - p.height / 3;
+  }
+  // clicking a menu link lands on a new page under a pointer that has not moved, which would reopen the menu:
+  // keep the menus shut on that page until the pointer leaves the item it landed on
+  const root = document.documentElement;
+  try {
+    if (sessionStorage.getItem('cn-nav-hold')) {
+      sessionStorage.removeItem('cn-nav-hold');
+      root.setAttribute('data-cn-hold', '');
+      let start: Element | null | undefined;
+      const release = (e: PointerEvent) => {
+        const item = (e.target as HTMLElement).closest?.('.cn-item') ?? null;
+        if (start === undefined) { start = item; if (item) return; }
+        if (item && item === start) return;
+        root.removeAttribute('data-cn-hold'); removeEventListener('pointermove', release);
+      };
+      addEventListener('pointermove', release);
+    }
+  } catch {}
+  document.querySelector('.cn-nav')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) try { sessionStorage.setItem('cn-nav-hold', '1'); } catch {}
+  });
+  const mark = () => document.documentElement.toggleAttribute('data-cn-scrolled', scrollY > 8);
+  mark(); addEventListener('scroll', mark, { passive: true });
+  const burger = document.querySelector<HTMLButtonElement>('[data-cn-burger]');
+  const drawer = document.querySelector<HTMLElement>('[data-cn-drawer]');
+  if (burger && drawer) {
+    const set = (open: boolean) => {
+      drawer.hidden = !open; burger.setAttribute('aria-expanded', String(open));
+      document.documentElement.toggleAttribute('data-cn-menu', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+    burger.addEventListener('click', () => set(drawer.hidden));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) { set(false); burger.focus(); } });
+    drawer.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) set(false); });
+  }
+</script>
+
+<style>
+  .cn-header { display: flex; align-items: center; gap: 1.5rem; height: 100%; }
+  .cn-brand { flex: none; display: block; height: 2.1rem; border-radius: 0.3rem; }
+  .cn-brand:focus-visible { outline: 2px solid var(--cn-accent); outline-offset: 4px; }
+  .cn-brand :global(.cn-brand-mark) { display: none; }
+  @media (max-width: 22rem) { .cn-brand :global(.cn-brand-full) { display: none; } .cn-brand :global(.cn-brand-mark) { display: block; } }
+  .cn-nav { display: none; gap: 0.25rem; margin-inline: auto; }
+  /* a hover menu is a sheet that continues the header: same colour, full width, drawn down from its lower edge */
+  .cn-item { position: static; }
+  .cn-pop { position: absolute; inset-inline: 0; top: 100%; z-index: 70; visibility: hidden; pointer-events: none; transition: visibility 0s 0.4s; }
+  .cn-pop::before { content: ''; position: absolute; inset-inline: 0; bottom: 100%; height: 1.5rem; } /* keeps the pointer inside while it crosses the gap */
+  .cn-item:hover > .cn-pop, .cn-item:focus-within > .cn-pop { visibility: visible; pointer-events: auto; transition-delay: 0s; }
+  :global(:root[data-cn-hold]) .cn-pop { visibility: hidden !important; pointer-events: none; transition: none; }
+  .cn-pop-in {
+    max-height: calc(100vh - var(--sl-nav-height) - 1rem); overflow-y: auto; display: flex; align-items: flex-start; gap: clamp(1.5rem, 4vw, 3.5rem);
+    padding: 1.4rem max(var(--sl-nav-pad-x, 1.5rem), calc((100% - 72rem) / 2)) 1.8rem;
+    background: var(--cn-header-bg); /* opaque: the page must not show through the words */
+    border-bottom: 1px solid color-mix(in oklab, var(--cn-accent) 22%, transparent);
+    box-shadow: 0 22px 32px -24px rgb(0 0 0 / 0.35);
+    clip-path: inset(0 0 100% 0); opacity: 0;
+    transition: clip-path 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s, opacity 0.18s ease 0.08s;
+  }
+  .cn-item:hover > .cn-pop > .cn-pop-in, .cn-item:focus-within > .cn-pop > .cn-pop-in { clip-path: inset(0 0 -2rem 0); opacity: 1; transition-delay: 0s; }
+  /* the landing's header is clear until the page moves, so the sheet takes the page's own colour then, and the header's once it fills in */
+  :global(:root.cn-landing:not([data-cn-scrolled])) .cn-pop-in { background: var(--cn-bg); }
+  .cn-col { display: flex; flex-direction: column; gap: 0.1rem; min-width: 11rem; opacity: 0; translate: 0 -0.5rem; transition: opacity 0.2s ease, translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .cn-item:hover .cn-col, .cn-item:focus-within .cn-col { opacity: 1; translate: 0; transition-delay: calc(0.05s + var(--i, 0) * 0.05s); }
+  .cn-col p { margin: 0 0 0.4rem; padding: 0 0.8rem 0.5rem; font-size: var(--sl-text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cn-accent); border-bottom: 1px solid var(--sl-color-hairline); grid-column: 1 / -1; }
+  .cn-single .cn-col { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  @media (prefers-reduced-motion: reduce) { .cn-pop-in, .cn-col { transition: none !important; } }
+  .cn-nav a, .cn-drawer a { padding: 0.4rem 0.8rem; border-radius: 0.4rem; color: var(--sl-color-gray-2); text-decoration: none; font-weight: 500; font-size: var(--sl-text-sm); }
+  .cn-nav a:hover, .cn-drawer a:hover { color: var(--sl-color-white); background: var(--sl-color-gray-6); }
+  .cn-nav .cn-pop a { white-space: nowrap; box-shadow: none; border-radius: 0.4rem; }
+  .cn-nav .cn-pop a[aria-current] { box-shadow: none; border-radius: 0.4rem; color: var(--sl-color-white); background: color-mix(in oklab, var(--cn-accent) 16%, transparent); }
+  .cn-nav a[aria-current], .cn-drawer a[aria-current] { color: var(--sl-color-white); box-shadow: inset 0 -2px 0 var(--cn-accent); border-radius: 0.4rem 0.4rem 0 0; }
+  .cn-tools { display: flex; align-items: center; gap: 0.6rem; margin-inline-start: auto; }
+  .cn-tools :global(site-search button) { min-width: 0; }
+  .cn-theme { display: none; align-items: center; gap: 0.6rem; }
+  /* the source link is the same square button as the menu; below 50rem it lives inside the menu instead */
+  .cn-social { display: none; align-items: center; }
+  .cn-social :global(a) { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; padding: 0; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem; background: transparent; color: var(--sl-color-text); }
+  .cn-social :global(a:hover) { background: color-mix(in oklab, var(--cn-accent) 14%, transparent); border-color: var(--cn-accent); color: var(--sl-color-text); }
+  .cn-social :global(svg) { width: 1.375rem; height: 1.375rem; }
+  .cn-burger { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem; background: transparent; color: var(--sl-color-text); cursor: pointer; }
+  .cn-burger:hover, .cn-burger[aria-expanded='true'] { background: color-mix(in oklab, var(--cn-accent) 14%, transparent); border-color: var(--cn-accent); }
+  .cn-burger .cn-x, .cn-burger[aria-expanded='true'] .cn-bars { display: none; }
+  .cn-burger[aria-expanded='true'] .cn-x { display: inline; }
+  /* the same sheet as the docs' menu: the full width under the header, in the page's own colour */
+  .cn-drawer { position: absolute; inset-inline: 0; top: 100%; z-index: 60; height: calc(100vh - var(--sl-nav-height)); display: block; padding: 1rem var(--sl-sidebar-pad-x, 1rem); background: var(--sl-color-black); overflow-y: auto; }
+  .cn-drawer a { display: block; }
+  .cn-drawer[hidden] { display: none; }
+  /* theme controls and the source link share one row under the links, aligned with their text */
+  .cn-drawer-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.6rem; padding: 0.9rem 0.8rem 0; border-top: 1px solid var(--sl-color-hairline); }
+  .cn-drawer-theme { display: contents; }
+  .cn-drawer-theme :global(theme-editor) { display: contents; }
+  .cn-drawer-theme :global(.te-mode), .cn-drawer-source :global(a) { width: 2.4rem; height: 2.4rem; }
+  .cn-drawer-theme :global(.te-toggle) { height: 2.4rem; }
+  .cn-drawer-theme :global(.te-panel) { position: static; order: 1; flex: 1 1 100%; width: auto; box-shadow: none; }
+  .cn-drawer-source { display: contents; }
+  .cn-drawer-source :global(a) { display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem; color: var(--sl-color-text); margin: 0; }
+  .cn-drawer-source :global(svg) { width: 1.375rem; height: 1.375rem; }
+  @media (min-width: 50rem) {
+    .cn-nav { display: flex; }
+    .cn-social, .cn-theme { display: flex; }
+    .cn-burger, .cn-drawer { display: none; }
+    .cn-tools { margin-inline-start: 0; }
+  }
+  @media (min-width: 50rem) and (max-width: 72rem) {
+    .cn-theme :global(.te-label), .cn-tools :global(kbd) { display: none; }
+    .cn-nav { gap: 0; }
+    .cn-nav a { padding-inline: 0.55rem; }
+    .cn-header { gap: 0.8rem; }
+  }
+</style>

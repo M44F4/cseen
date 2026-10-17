@@ -1,0 +1,71 @@
+# Builds and checks the library and the docs site, then publishes the site to GitHub Pages.
+# The site's url and base live in site/src/config.ts.
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix site
+
+      - name: Library tests and types
+        run: |
+          npm test
+          npm run typecheck
+
+      - name: API reference has no gaps
+        run: npm --prefix site run api:strict
+
+      - name: Docs types
+        run: npm --prefix site run check
+
+      # the link validator runs as part of the build and fails it on a broken internal link
+      - name: Build the site
+        run: npm run docs:build
+
+      - name: Browser checks
+        run: |
+          npx --prefix site playwright-core install --with-deps chromium
+          npm run docs:test
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

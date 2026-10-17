@@ -1,0 +1,46 @@
+---
+title: Install
+description: Add the library to a project.
+sidebar:
+  order: 2
+---
+
+## From npm
+
+```bash
+npm install @@pkg@@
+```
+
+The library has no dependencies of its own. The docs site you are reading lives in `site/` and has its own `package.json`, which nothing published depends on.
+
+## From source
+
+To work on @@name@@ itself, clone the repository and build it:
+
+```bash
+git clone https://github.com/M44F4/cseen.git
+cd cseen
+npm install
+npm run build        # compiles to dist/
+```
+
+## Imports
+
+The core is small. Everything else is a pack that depends only on the core, and each pack has its own import path, so a page that only needs a monitor does not load the chart code.
+
+```ts
+import { Scene, box, mount } from '@@pkg@@';
+import { monitor } from '@@pkg@@/devices';
+import { bars } from '@@pkg@@/charts';
+import '@@pkg@@/cseen.css';
+```
+
+The stylesheet is what makes figures follow your theme. Import it once.
+
+## Requirements
+
+- A browser from the last few years. Series colours use relative colour syntax; older browsers fall back to a fixed accessible palette.
+- TypeScript is optional. The library is typed and works from plain JavaScript.
+- Any current Node for rendering on the server. The library is plain ES modules.
+
+Next: [your first scene](/start/first-scene/).

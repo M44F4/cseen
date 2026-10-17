@@ -1,0 +1,249 @@
+/*
+  One palette for the docs and the figures. The page and every figure read --cn-ink, --cn-bg and
+  --cn-accent; Starlight's own variables are derived from the same three. The theme editor in the
+  header sets them on <html>.
+*/
+@import '../../../src/theme/cseen.css';
+
+:root,
+:root[data-theme='light'] {
+  --cn-ink: #0b0b0b;
+  --cn-bg: #f2f2f2;
+  --cn-accent: #00a86b;
+  --cn-logo-a: #0b0b0b;
+  --cn-logo-b: #00a86b;
+}
+:root[data-theme='dark'] {
+  --cn-ink: #f2f2f2;
+  --cn-bg: #0b0b0b;
+  --cn-accent: #1fd493;
+  --cn-logo-a: #f2f2f2;
+  --cn-logo-b: #1fd493;
+}
+/* first visit: follow the system until a theme is chosen (the head script sets data-theme once one is) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --cn-ink: #f2f2f2;
+    --cn-bg: #0b0b0b;
+    --cn-accent: #1fd493;
+    --cn-logo-a: #f2f2f2;
+    --cn-logo-b: #1fd493;
+  }
+}
+:root { --cn-font-display: 'Orbitron', 'Orbitron Fallback', system-ui, sans-serif; }
+
+:root,
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --sl-color-black: var(--cn-bg);
+  --sl-color-white: var(--cn-ink);
+  --sl-color-gray-1: color-mix(in oklab, var(--cn-ink) 88%, var(--cn-bg));
+  /* gray-2 and gray-3 carry small text (hints, captions, clocks): kept at about 4.5:1 or better against the page in the presets */
+  --sl-color-gray-2: color-mix(in oklab, var(--cn-ink) 78%, var(--cn-bg));
+  --sl-color-gray-3: color-mix(in oklab, var(--cn-ink) 66%, var(--cn-bg));
+  --sl-color-gray-4: color-mix(in oklab, var(--cn-ink) 36%, var(--cn-bg));
+  --sl-color-gray-5: color-mix(in oklab, var(--cn-ink) 18%, var(--cn-bg));
+  --sl-color-gray-6: color-mix(in oklab, var(--cn-ink) 8%, var(--cn-bg));
+  --sl-color-gray-7: color-mix(in oklab, var(--cn-ink) 4%, var(--cn-bg));
+  --sl-color-accent: var(--cn-accent);
+  --sl-color-accent-high: color-mix(in oklab, var(--cn-accent) 70%, var(--cn-ink));
+  --sl-color-accent-low: color-mix(in oklab, var(--cn-accent) 16%, var(--cn-bg));
+  --sl-color-text-accent: var(--sl-color-accent-high);
+  --sl-color-bg: var(--cn-bg);
+  --sl-color-bg-nav: var(--sl-color-gray-7);
+  --sl-color-bg-sidebar: var(--cn-bg);
+  --sl-color-bg-inline-code: var(--sl-color-gray-6);
+  --sl-color-hairline: var(--sl-color-gray-5);
+  --sl-color-hairline-light: var(--sl-color-gray-6);
+  --sl-color-hairline-shade: var(--sl-color-gray-6);
+  --sl-color-text: var(--sl-color-gray-1);
+  --sl-font-system-mono: 'JetBrains Mono Variable', 'JetBrains Mono Fallback', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --sl-font-system: 'Instrument Sans Variable', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sl-font: var(--sl-font-system);
+  --sl-font-mono: var(--sl-font-system-mono);
+}
+code, pre, kbd { font-variant-ligatures: none; }
+/* the display face is for page titles only: it stays out of body text, sidebar and code */
+.sl-markdown-content h1, .content-panel h1, h1#_top { font-family: var(--cn-font-display); font-weight: 700; letter-spacing: 0; }
+
+/* a figure keeps keyboard focus visible without a heavy box after a click */
+svg.cseen:focus { outline: none; }
+svg.cseen:focus-visible { outline: 2px solid var(--cn-accent); outline-offset: 2px; }
+
+.figure { border: 1px solid var(--sl-color-hairline); border-radius: 0.5rem; background: var(--cn-bg); overflow: hidden; }
+
+/* the header is a warm, translucent sheet (sand in light, green-gold in dark) so the page shows faintly
+   through it while scrolling; on the landing it starts clear and fills in once the page moves */
+:root { --cn-header-bg: color-mix(in oklab, var(--cn-accent) 9%, var(--cn-bg) 91%); }
+header.header {
+  background-color: color-mix(in oklab, var(--cn-header-bg) 78%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in oklab, var(--cn-accent) 22%, transparent);
+  transition: background-color 0.2s ease, border-color 0.2s ease, backdrop-filter 0.2s ease;
+}
+:root.cn-landing header.header { background-color: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root.cn-landing[data-cn-scrolled] header.header {
+  background-color: color-mix(in oklab, var(--cn-header-bg) 78%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--cn-accent) 22%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+}
+/* the docs' menu button matches the landing's: a quiet outlined square, not a filled disc */
+.sl-menu-button, [data-theme] .sl-menu-button {
+  width: 2.4rem; height: 2.4rem; padding: 0; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem;
+  background: transparent; color: var(--sl-color-text); box-shadow: none;
+  top: calc((var(--sl-nav-height) - 1px - 2.4rem) / 2);
+}
+@media (max-width: 49.99rem) { .sl-menu-button { display: grid; place-items: center; } }
+.sl-menu-button svg { width: 22px; height: 22px; }
+.sl-menu-button:hover, .sl-menu-button:has(~ :popover-open) { background: color-mix(in oklab, var(--cn-accent) 14%, transparent); border-color: var(--cn-accent); box-shadow: none; }
+
+/* the playground, examples and gallery need room: the reading width is for prose */
+:root.cn-wide { --sl-content-width: 72rem; }
+
+/* tablet and half-screen: a slimmer sidebar leaves the room to the content */
+@media (min-width: 50rem) and (max-width: 72rem) { :root { --sl-sidebar-width: 15rem; } }
+
+/* the sidebar ends where the full-width footer begins (set by the footer script) */
+@media (min-width: 50rem) { .sidebar-pane { inset-block-end: var(--cn-sb-bottom, 0px); } }
+html { overflow-x: clip; }
+
+/* the right rail: quiet, small, and only as wide as it needs to be */
+@media (min-width: 72rem) { .right-sidebar { height: calc(100vh - var(--cn-sb-bottom, 0px)) !important; } }
+.right-sidebar-panel { margin-inline-start: 0.5rem; }
+.right-sidebar-panel h2 { font-family: var(--sl-font-mono); font-size: var(--sl-text-xs) !important; font-weight: 500 !important; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sl-color-gray-3) !important; }
+.right-sidebar-panel a { font-size: 0.78rem !important; line-height: 1.4; padding-block: 0.2rem; }
+.right-sidebar-panel a[aria-current='true'] { color: var(--sl-color-white); }
+@media (min-width: 72rem) and (max-width: 90rem) { :root { --sl-sidebar-width: 15rem; } }
+/* nothing under the footer */
+main.cn-flush, .content-panel.cn-flush { padding-bottom: 0; }
+
+/* sidebar pages get a tick, so a label that wraps still reads as one page */
+.sidebar-content ul ul a { position: relative; padding-inline-start: 1.5rem; }
+.sidebar-content ul ul a::before { content: ''; position: absolute; inset-inline-start: 0.65rem; top: 0.95em; width: 5px; height: 5px; border-radius: 50%; background: var(--sl-color-gray-4); }
+.sidebar-content ul ul a:hover::before { background: var(--cn-accent); }
+.sidebar-content ul ul a[aria-current='page']::before { background: currentColor; }
+
+/* notes, tips and warnings take the site's accent instead of Starlight's stock blue */
+:root, :root[data-theme='light'], :root[data-theme='dark'] {
+  --sl-color-blue-low: color-mix(in oklab, var(--cn-accent) 12%, var(--cn-bg));
+  --sl-color-blue: var(--cn-accent);
+  --sl-color-blue-high: color-mix(in oklab, var(--cn-accent) 75%, var(--cn-ink));
+  --sl-mobile-toc-height: 0rem;
+}
+
+/* the reference filter hides entries with the hidden attribute, which a display rule must not undo */
+.sl-markdown-content [hidden] { display: none !important; }
+
+/* reference pages are for looking things up: denser, names in mono, a rule between entries */
+:root.cn-ref .sl-markdown-content .sl-heading-wrapper.level-h3 { margin-top: 2.4rem; padding-top: 1.2rem; border-top: 1px solid var(--sl-color-hairline); }
+:root.cn-ref .sl-markdown-content h3 { font-family: var(--sl-font-mono); font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+:root.cn-ref .sl-markdown-content .sl-heading-wrapper.level-h2 { margin-top: 3rem; }
+:root.cn-ref .sl-markdown-content h2 { font-size: 1.5rem; }
+:root.cn-ref .sl-markdown-content table { font-size: var(--sl-text-sm); }
+:root.cn-ref .sl-markdown-content td, :root.cn-ref .sl-markdown-content th { padding: 0.35rem 0.8rem; }
+:root.cn-ref .sl-markdown-content .expressive-code { margin-top: 0.7rem; }
+:root.cn-ref .sl-markdown-content p { font-size: 0.95rem; }
+
+/* ------------------------------------------------------------------ details that make it the site's own */
+
+/* scrollbars: thin, in the page's own colours, and the accent when you reach for them */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--cn-ink) 26%, transparent) transparent; }
+*:hover { scrollbar-color: color-mix(in oklab, var(--cn-accent) 70%, var(--cn-ink)) transparent; }
+html { scrollbar-color: color-mix(in oklab, var(--cn-ink) 30%, var(--cn-bg)) var(--cn-bg); }
+
+/* selected text and the keyboard focus ring */
+::selection { background: color-mix(in oklab, var(--cn-accent) 32%, transparent); color: inherit; }
+:focus-visible { outline: 2px solid var(--cn-accent); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* a figure you can turn is grabbed, and says so */
+cseen-mini svg.cseen, .dm-view svg.cseen, .pg-view svg.cseen { cursor: grab; }
+cseen-mini svg.cseen:active, .dm-view svg.cseen:active, .pg-view svg.cseen:active { cursor: grabbing; }
+
+/* the ring that follows the pointer over figures */
+.cn-ring { position: fixed; left: 0; top: 0; z-index: 90; width: 44px; height: 44px; border: 1.5px solid var(--cn-accent); border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.18s ease, width 0.18s ease, height 0.18s ease, background 0.18s ease; }
+.cn-ring.on { opacity: 0.85; }
+.cn-ring.on.down { width: 30px; height: 30px; background: color-mix(in oklab, var(--cn-accent) 18%, transparent); }
+
+/* a message that goes by itself */
+.cn-toast { position: fixed; left: 50%; bottom: 1.5rem; z-index: 200; padding: 0.5rem 1rem; border: 1px solid var(--sl-color-hairline); border-radius: 999px; background: var(--sl-color-bg); color: var(--sl-color-white); font-size: var(--sl-text-sm); box-shadow: 0 8px 24px color-mix(in oklab, var(--cn-ink) 18%, transparent); transform: translate(-50%, 1rem); opacity: 0; pointer-events: none; transition: transform 0.2s ease, opacity 0.2s ease; }
+.cn-toast.show { transform: translate(-50%, 0); opacity: 1; }
+.cn-toast::before { content: ''; display: inline-block; width: 0.5rem; height: 0.5rem; margin-inline-end: 0.5rem; border-radius: 50%; background: var(--cn-accent); }
+
+/* tooltips on icon buttons */
+.cn-tip { position: fixed; z-index: 220; max-width: 16rem; padding: 0.3rem 0.6rem; border-radius: 0.35rem; background: var(--cn-ink); color: var(--cn-bg); font-size: var(--sl-text-xs); line-height: 1.3; pointer-events: none; opacity: 0; transition: opacity 0.12s ease; }
+.cn-tip.show { opacity: 1; }
+
+/* the keyboard shortcut list */
+dialog.cn-keys { margin: auto; width: min(24rem, calc(100vw - 2rem)); padding: 1.2rem 1.4rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.8rem; background: var(--sl-color-bg); color: var(--sl-color-text); }
+dialog.cn-keys::backdrop { background: color-mix(in oklab, var(--cn-ink) 40%, transparent); backdrop-filter: blur(3px); }
+dialog.cn-keys h2 { margin: 0 0 0.8rem; font-size: 1.1rem; }
+dialog.cn-keys table { width: 100%; border-collapse: collapse; font-size: var(--sl-text-sm); }
+dialog.cn-keys td { padding: 0.3rem 0; border: 0; }
+dialog.cn-keys td:first-child { white-space: nowrap; padding-inline-end: 1rem; }
+dialog.cn-keys kbd { padding: 0.1rem 0.4rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.3rem; background: var(--sl-color-gray-6); font-family: var(--sl-font-mono); font-size: 0.8rem; }
+dialog.cn-keys button { margin-top: 0.9rem; padding: 0.3rem 0.9rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+
+/* how far down a long page you are, and that the next page is on its way */
+.cn-read { position: fixed; left: 0; top: 0; z-index: 120; height: 2px; width: 100%; background: var(--cn-accent); transform-origin: left; transform: scaleX(0); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+.cn-navbar { position: fixed; left: 0; top: 0; z-index: 130; height: 3px; width: 0; background: var(--cn-accent); opacity: 0; pointer-events: none; }
+.cn-navbar.go { opacity: 1; width: 85%; transition: width 6s cubic-bezier(0.1, 0.6, 0.2, 1); }
+
+/* the home page grid that lights up under the pointer */
+.cn-trail { display: block; }
+
+/* moving between pages fades instead of flashing; the header and sidebar stay put */
+@view-transition { navigation: auto; }
+html { background-color: var(--cn-bg); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.16s; }
+/* the header and sidebar are the same on both pages: swap them instantly instead of cross-fading two snapshots */
+::view-transition-group(cn-header), ::view-transition-group(cn-sidebar) { animation-duration: 0s; }
+::view-transition-old(cn-header), ::view-transition-old(cn-sidebar) { display: none; }
+::view-transition-new(cn-header), ::view-transition-new(cn-sidebar) { animation: none; }
+header.header { view-transition-name: cn-header; }
+.sidebar-pane { view-transition-name: cn-sidebar; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .cn-toast, .cn-tip, .cn-ring, .cn-read, .cn-navbar.go, header.header { transition: none; }
+}
+
+/* the logo: two roles painted from the theme, or the one-colour artwork (set by the theme editor) */
+.cn-logo { display: block; height: 100%; width: auto; overflow: visible; }
+.lg-a { fill: var(--cn-logo-a); }
+.lg-b { fill: var(--cn-logo-b); }
+.lg-m { fill: var(--cn-ink); }
+.lg-mono { display: none; }
+:root[data-logo='mono'] .lg-color { display: none; }
+:root[data-logo='mono'] .lg-mono { display: inline; }
+
+/* with the landing's menu open the header is the same filled bar as in the docs */
+:root.cn-landing[data-cn-menu] header.header {
+  background-color: var(--sl-color-black); border-bottom-color: var(--sl-color-hairline-shade);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* The loader (lib/loader.ts): the cseen cube, spinning on its vertical axis. */
+.cn-loading { display: inline-grid; place-items: center; }
+.cn-loader { opacity: 0.6; display: block; position: relative; height: var(--cn-loader-h, 3rem); aspect-ratio: 1 / 1.1; --cn-s: calc(var(--cn-loader-h, 3rem) * 0.58); }
+.cn-tilt, .cn-cube { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
+.cn-tilt { transform: rotateX(-35.264deg); }
+.cn-cube { animation: cn-spin 3.2s linear infinite; }
+.cn-face { position: absolute; width: var(--cn-s); height: var(--cn-s); left: calc(var(--cn-s) / -2); top: calc(var(--cn-s) / -2); backface-visibility: hidden; padding: calc(var(--cn-s) * 0.035); box-sizing: border-box; }
+.cn-face svg { display: block; width: 100%; height: 100%; }
+.cn-face.f-top { transform: rotateX(90deg) translateZ(calc(var(--cn-s) / 2)); }
+.cn-face.f-bottom { transform: rotateX(-90deg) translateZ(calc(var(--cn-s) / 2)); }
+.cn-face.f-front { transform: translateZ(calc(var(--cn-s) / 2)); }
+.cn-face.f-back { transform: rotateY(180deg) translateZ(calc(var(--cn-s) / 2)); }
+.cn-face.f-right { transform: rotateY(90deg) translateZ(calc(var(--cn-s) / 2)); }
+.cn-face.f-left { transform: rotateY(-90deg) translateZ(calc(var(--cn-s) / 2)); }
+@keyframes cn-spin { from { transform: rotateY(-45deg); } to { transform: rotateY(-405deg); } }
+@media (prefers-reduced-motion: reduce) { .cn-cube { animation: none; transform: rotateY(-45deg); } }
+.cn-loading-fill { display: grid; place-items: center; height: 100%; }
+/* a loader that appears over the page while a window's code is on its way */
+.cn-loading-pill { position: fixed; top: 5rem; left: 50%; transform: translateX(-50%); z-index: 60; padding: 0.7rem 1.1rem; border: 1px solid var(--sl-color-hairline); border-radius: 999px; background: var(--sl-color-bg-nav); box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); }
+
+/* the docs' mobile menu footer matches the landing page's menu: mode, colours, then the source link as the same square button */
+.mobile-preferences { justify-content: flex-start; align-items: center; gap: 0.6rem; padding: 0.9rem 0; }
+.mobile-preferences .social-icons { order: 2; margin: 0; padding: 0; gap: 0; }
+.mobile-preferences .social-icons a { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; padding: 0; border: 1px solid var(--sl-color-hairline); border-radius: 0.4rem; background: transparent; color: var(--sl-color-text); }
+.mobile-preferences .social-icons svg { width: 1.375rem; height: 1.375rem; }

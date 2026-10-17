@@ -1,0 +1,21 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "src", "scripts", "tests", "astro.config.ts"],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "baseUrl": ".",
+    "paths": {
+      "cseen": ["../src/index.ts"],
+      "cseen/all": ["../src/all.ts"],
+      "cseen/devices": ["../src/devices/index.ts"],
+      "cseen/ui": ["../src/ui/index.ts"],
+      "cseen/charts": ["../src/charts/index.ts"],
+      "cseen/waves": ["../src/waves/index.ts"],
+      "cseen/optics": ["../src/optics/index.ts"],
+      "cseen/math": ["../src/math/index.ts"],
+      "cseen/flow": ["../src/flow/index.ts"]
+    }
+  }
+}

@@ -1,0 +1,44 @@
+---
+title: Use in React
+description: Mount a scene in an effect and clean it up.
+sidebar:
+  order: 3
+---
+
+There is no React wrapper yet. A scene is plain objects and `mount` takes an element, so a component is a few lines.
+
+```tsx norun
+import { useEffect, useRef } from 'react';
+import { Scene, Timeline, box, ground, fadeIn, mount, renderStill } from '@@pkg@@';
+import '@@pkg@@/cseen.css';
+
+function build() {
+  const s = new Scene({ title: 'A box fading in' });
+  s.add(ground());
+  const b = s.add(box({ at: [0, 0, 0], role: 'accent' }));
+  const tl = new Timeline();
+  tl.play(fadeIn(b));
+  return { s, tl };
+}
+
+export function Figure() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const { s, tl } = build();
+    const player = mount(ref.current!, s, { timeline: tl });
+    return () => player.destroy();
+  }, []);
+
+  // the still is the first paint, and what server rendering sends
+  const { s, tl } = build();
+  return <div ref={ref} dangerouslySetInnerHTML={{ __html: renderStill(s, tl) }} />;
+}
+```
+
+Notes:
+
+- `player.destroy()` in the effect's cleanup stops the animation and releases the page.
+- `mount` replaces the SVG's children, so React must not manage them. That is why the markup is set once with `dangerouslySetInnerHTML` and the ref points at the container.
+- To let the reader turn the figure, call `orbit(ref.current.querySelector('svg'), s, { onChange: () => player.invalidate() })` and destroy it in the same cleanup.
+- Props can drive a scene: build it from the props, or keep one scene and animate it with `tween`.

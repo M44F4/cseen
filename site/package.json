@@ -1,0 +1,40 @@
+{
+  "name": "cseen-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "preview": "astro preview",
+    "serve": "astro build && astro preview",
+    "api": "node scripts/api.ts",
+    "frame": "node scripts/frame.ts",
+    "api:check": "node scripts/api.ts --check",
+    "api:strict": "node scripts/api.ts --strict",
+    "predev": "npm run api && npm run frame",
+    "prebuild": "npm run api && npm run frame",
+    "precheck": "npm run api",
+    "pretest": "npm run build",
+    "test": "node tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.2",
+    "@astrojs/mdx": "8.0.3",
+    "@astrojs/starlight": "0.42.6",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-javascript": "6.2.5",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.14",
+    "@lezer/highlight": "1.2.5",
+    "astro": "7.3.8",
+    "playwright-core": "1.64.0",
+    "starlight-links-validator": "0.27.0",
+    "sucrase": "3.35.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "5.9.3"
+  }
+}

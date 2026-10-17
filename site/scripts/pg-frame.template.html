@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  The playground's sandbox. The page that embeds this one gives the iframe sandbox="allow-scripts" and nothing
+  else, so the visitor's code runs here with no access to the site: no cookies, no storage, no DOM of the
+  parent, no navigation of the parent. The policy below also closes the network: nothing can be fetched,
+  sent, framed or submitted. Only the bundled script (inlined here by scripts/frame.ts) may run. It is inlined because a page with an opaque origin cannot rely on
+  the host to serve it files across origins.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Preview</title>
+<style>/*__CSS__*/</style>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--cn-bg, transparent); }
+  #view { position: fixed; inset: 0; }
+  #view svg.cseen { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+  #view svg.cseen:active { cursor: grabbing; }
+  #view svg.cseen:focus { outline: none; }
+</style>
+</head>
+<body data-pagefind-ignore>
+<div id="view"></div>
+<script>/*__JS__*/</script>
+</body>
+</html>

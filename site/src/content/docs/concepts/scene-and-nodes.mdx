@@ -1,0 +1,70 @@
+---
+title: Scene and nodes
+description: A scene is a tree of nodes, a camera and the settings to draw them.
+sidebar:
+  order: 1
+---
+
+import Demo from '../../../components/Demo.astro';
+
+A **scene** is a tree of nodes, a camera and the settings to draw them. It draws whatever state its nodes are in right now; a [timeline](/concepts/timeline/) changes that state over time.
+
+```ts
+import { Scene, box, ground } from '@@pkg@@';
+
+const s = new Scene({
+  view: 'iso',            // the camera
+  size: [320, 200],       // drawing size in viewBox units
+  title: 'A box',         // the accessible name
+});
+s.add(ground(), box({ at: [0, 0, 0] }));
+```
+
+## Everything is a node
+
+A shape, a device, a chart and a wave are all nodes. They take the same options, can be grouped, moved and animated the same way, and the renderer gives none of them special treatment.
+
+| Option | Meaning |
+| --- | --- |
+| `at` | position of the node's origin, in its parent |
+| `rot` | rotation in degrees about x, y and z |
+| `scale` | uniform scale |
+| `opacity` | transparency of the whole node, 0 to 1 |
+| `layer` | draw order between groups of things, lower first |
+
+<Demo id="core/place" />
+
+## Groups
+
+Put nodes in a group to move, turn and scale them together. A group is also a unit for [depth sorting](/concepts/depth-and-limits/).
+
+<Demo id="core/groups" />
+
+## Colour roles
+
+You never pass a colour. You pass a **role**, and CSS decides what it looks like: `ink`, `faint`, `accent`, `warm`, `cool`, `s1` to `s8`, or any role you define. See [Theming](/concepts/theming/).
+
+<Demo id="core/roles" />
+
+## Things that follow things
+
+`anchor()` gives a point that stays attached to an object. An arrow drawn between two anchors follows both as they move.
+
+```ts
+import { Scene, box, line } from '@@pkg@@';
+
+const s = new Scene();
+const a = s.add(box({ at: [-2, 0, 0], size: 1 }));
+const b = s.add(box({ at: [2, 0, 0], size: 1, role: 'accent' }));
+s.add(line(a.pt('center'), b.pt('center')));
+```
+
+<Demo id="core/follow" />
+
+Devices, waves and charts expose named anchors the same way (`router.signal()`, `antenna.signal()`), so you attach things to them without writing coordinates.
+
+## Transparency
+
+`alpha` makes a surface see-through; `opacity` fades a whole object.
+
+<Demo id="objects/glass" />

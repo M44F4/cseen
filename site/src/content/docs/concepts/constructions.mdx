@@ -1,0 +1,141 @@
+---
+title: Constructions
+description: Draw a figure step by step from guides, circles and outlines, and take it apart again.
+sidebar:
+  order: 8
+---
+
+import Demo from '../../../components/Demo.astro';
+
+A **construction** is a drawing made of parts. Each part is an outline that can draw itself on, fill, turn, move, scale and fade, so you can show how a shape is made: guide lines, compass circles, measurements, and finally the shape itself.
+
+<Demo id="core/cube-build" />
+
+That is the cube from the home page, drawn from nothing: guide lines first, then six squares, a letter traced into each, and last the flat net folds shut. A construction is a flat drawing, so it lies on a plane of the scene like [any SVG](/concepts/svg-on-planes/), and the rest of the scene (camera, timeline, theme) treats it as one node.
+
+## Parts
+
+```ts
+import { Scene, Timeline, Construct, circleD, segsD, arcSegs, tween, mount } from '@@pkg@@';
+
+const s = new Scene({ view: 'front', size: [360, 360], padding: 6 });
+const c = s.add(new Construct({ box: [0, 0, 200, 200], size: [3.4, 3.4] }));
+
+const ring = c.add({ d: circleD(100, 100, 70), stroke: 'faint', width: 1.5, props: { draw: 0 } });
+const leaf = c.add({ d: segsD(arcSegs(160, 100, 80, 2.5, 3.78).concat(arcSegs(40, 100, 80, -0.64, 0.64)), true), paint: 'accent', width: 3, props: { draw: 0 } });
+
+const tl = new Timeline();
+tl.play(tween(ring, { draw: 1 }, { duration: 1.2 }));
+tl.play(tween(leaf, { draw: 1, fill: 0.4 }, { duration: 1.2 }));
+tl.play(tween(leaf, { spin: 90 }, { duration: 1.2 }));
+```
+
+`box` is the part of the drawing's own coordinates to show: `[x, y, width, height]`. You draw in those units, not in scene units, with y pointing down as in SVG. `size` is how big the drawing is in the scene.
+
+`c.add({...})` returns the part. Its options:
+
+| Option | Meaning |
+|---|---|
+| `d` | The outline as an SVG path, or a function of the part's properties that makes one |
+| `stroke` | Line colour, a role (`ink`, `faint`, `accent`, `s1` to `s8`) or any CSS colour; `'none'` hides the line |
+| `paint` | Fill colour; there is no fill unless you give one |
+| `width` | Line width in the drawing's units |
+| `about` | The point that `spin` and `scale` turn and grow about; the middle of the box by default |
+| `props` | Starting values of the properties below |
+| `text`, `at`, `size`, `anchor` | Make the part a small text tag instead of an outline |
+
+Parts paint in the order they were added, so add the guides first and the finished shape last.
+
+## What a part can animate
+
+Everything that changes lives in the part's properties, so a timeline can tween it:
+
+| Property | Default | Effect |
+|---|---|---|
+| `draw` | 1 | How much of the outline is drawn, 0 to 1. Start at 0 to make it trace on |
+| `fill` | 0 | Opacity of the fill |
+| `line` | 1 | Opacity of the outline, so a guide can fade once the shape is filled |
+| `spin` | 0 | Degrees about `about` |
+| `scale` | 1 | Growth about `about` |
+| `dx`, `dy` | 0 | Move, in the drawing's units |
+| `op` | 1 | Opacity of the whole part |
+
+Any property you add through `props` is animatable too, and when `d` is a function it receives them all. That is how one outline is reshaped:
+
+```ts norun
+const ring = c.add({
+  d: (p) => circleD(100, 100, p.r as number),
+  props: { r: 30 },
+});
+tl.play(tween(ring, { r: 80 }, { duration: 1 }));
+```
+
+A part with `text` is a label for the step: it is drawn at `at`, in the colour of `stroke`, and you fade it in with `op`.
+
+## Describing shapes
+
+Outlines are paths made of cubic segments. The helpers build them so you do not write path strings by hand:
+
+| Helper | Gives |
+|---|---|
+| `arcSegs(cx, cy, r, a0, a1)` | A circular arc as segments. Angles in radians, a positive sweep turns clockwise on screen |
+| `lineSegs(a, b)` | A straight segment |
+| `rotateSegs(segs, centre, angle)` | The same segments turned about a point |
+| `segsD(segs, close?)` | Segments written as a path string. Pass `true` to close it |
+| `circleD(cx, cy, r)` | A full circle that starts at the top and goes clockwise, so it draws on like a compass |
+| `lineD(a, b)` | A straight line as a path |
+| `polar(centre, r, degrees)` | The point at a distance and an angle (0 to the right, 90 up) |
+| `measureD(a, b, tick?)` | A measuring bracket: a line with a tick across each end |
+
+Join arcs and lines with `segsD` to make a petal, a crescent or a stem, and copy a shape around a centre with `rotateSegs`:
+
+```ts
+import { Scene, Construct, lineSegs, rotateSegs, segsD } from '@@pkg@@';
+
+const s = new Scene({ view: 'front', size: [320, 320], padding: 6 });
+const c = new Construct({ box: [0, 0, 200, 200], size: [3, 3] });
+const spoke = lineSegs([100, 100], [100, 20]);
+for (let k = 0; k < 6; k++) c.add({ d: segsD(rotateSegs(spoke, [100, 100], (k * Math.PI) / 3)), width: 4 });
+s.add(c);
+```
+
+## Taking it apart
+
+`reverse(anim)` plays an animation backwards. Every tween in it needs a literal `to` and a `from`, so it knows where to go back to:
+
+```ts
+import { Scene, Timeline, box, tween, reverse } from '@@pkg@@';
+
+const s = new Scene();
+const b = s.add(box({ at: [0, 0, 0] }));
+
+const tl = new Timeline();
+const there = tween(b, { pos: [3, 0, 0] }, { duration: 1.5, from: { pos: [-3, 0, 0] } });
+tl.play(there);
+tl.play(reverse(there));
+tl.lockFit(s);
+```
+
+A tween with no `from`, or with a function as its `to`, throws an error that names what is missing. It also works on a combined animation such as `par(...)` or `stagger(...)`, as long as every tween inside has a `from`.
+
+## Tying the scene to the drawing
+
+Two calls link a drawing to the world around it.
+
+`c.at(x, y)` returns where a point of the drawing sits in the scene, so you can drop a line from a corner of a shape to where it lifted, or put a dot or a label on it:
+
+```ts norun
+const corner = c.at(160, 100);
+s.add(arrow(corner, [corner[0], corner[1], 2]));
+```
+
+`scene.screen([x, y, z])` goes the other way, to the picture. It returns where a point of the scene lands, in the scene's drawing units, with the framing as it is now. Use it to line up something on the page with the figure, for example a grid drawn behind it in CSS. Call it after the framing is settled, for instance after `tl.lockFit(s)`.
+
+## Tips
+
+- Keep guides `faint` and thin, and the thing being explained in the `accent` and thick. The eye follows the thick line.
+- Start every part you want to trace at `draw: 0`, and every part you want to fill later at `fill: 0`.
+- When a drawing repeats a kind of part, wrap `c.add` in a helper with your defaults, as the demo above does with `guide`.
+- Use two constructions on the same plane when some parts should stay on the ground and others should rise. Give the second `layer: 1` so it paints above the first, and lift it with the group it is in. The [404 page](/gallery/core/) does this.
+- A construction can also be a face of a solid. The cube above gives each square its own construction, hung from a hinge group that turns, and `cull: true` hides a face while its back is toward the camera.
+- The demo's code is on its [gallery card](/gallery/core/); open it in the playground to read the whole build.

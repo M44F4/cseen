@@ -1,0 +1,9 @@
+---
+// The cseen logo. 'full' is the mark with the wordmark, 'mark' the mark alone. The size comes from the height of
+// the box it sits in (a class or an inline style on the wrapper); the colours come from the theme, see src/theme.ts.
+import { LOGO_BOX } from '../brand/logo-sprite.ts';
+interface Props { variant?: 'full' | 'mark'; label?: string; class?: string }
+const { variant = 'full', label = 'cseen', class: cls } = Astro.props;
+const [, , w, h] = LOGO_BOX[variant].split(' ').map(Number);
+---
+<svg class:list={['cn-logo', cls]} viewBox={`0 0 ${w} ${h}`} style={`aspect-ratio:${w}/${h}`} role="img" aria-label={label}><use href={`#cn-logo-${variant}`} /></svg>

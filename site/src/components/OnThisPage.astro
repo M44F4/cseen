@@ -1,0 +1,56 @@
+---
+// Replaces Starlight's full-width "On this page" bar below 72rem with a small button that opens a short list.
+// From 72rem up the right rail (restyled in custom.css) takes over.
+interface Item { slug: string; text: string; depth: number; children: Item[] }
+const { toc } = Astro.locals.starlightRoute;
+const items = (toc?.items ?? []) as Item[];
+const list = (xs: Item[]): Item[] => xs.flatMap((x) => [x, ...list(x.children ?? [])]);
+const flat = list(items);
+---
+{flat.length > 0 && (
+  <cn-otp>
+    <details>
+      <summary aria-label="On this page"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span>On this page</span></summary>
+      <ul>
+        {flat.map((i) => <li style={`--d:${Math.max(0, i.depth - 2)}`}><a href={`#${i.slug}`}>{i.text}</a></li>)}
+      </ul>
+    </details>
+  </cn-otp>
+)}
+
+<script>
+  class SzOtp extends HTMLElement {
+    connectedCallback() {
+      const d = this.querySelector('details')!;
+      this.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) d.open = false; });
+      document.addEventListener('click', (e) => { if (!this.contains(e.target as Node)) d.open = false; });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && d.open) { d.open = false; d.querySelector('summary')?.focus(); } });
+      // out of the way while reading: it slides off when you scroll down and returns when you scroll up
+      let last = scrollY, q = 0;
+      addEventListener('scroll', () => {
+        cancelAnimationFrame(q);
+        q = requestAnimationFrame(() => {
+          const y = scrollY, down = y > last + 4;
+          if (down && y > 200 && !d.open) this.classList.add('away');
+          else if (y < last - 4 || y <= 200) this.classList.remove('away');
+          last = y;
+        });
+      }, { passive: true });
+    }
+  }
+  if (!customElements.get('cn-otp')) customElements.define('cn-otp', SzOtp);
+</script>
+
+<style>
+  cn-otp { position: fixed; inset-inline-end: 1rem; bottom: 1rem; z-index: 40; transition: transform 0.25s ease, opacity 0.25s ease; }
+  cn-otp.away { transform: translateY(4rem); opacity: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { cn-otp { transition: none; } }
+  summary { list-style: none; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.8rem; border: 1px solid var(--sl-color-hairline); border-radius: 999px; background: var(--sl-color-bg); color: var(--sl-color-text); font-size: var(--sl-text-xs); cursor: pointer; box-shadow: 0 4px 16px color-mix(in oklab, var(--cn-ink) 14%, transparent); }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { border-color: var(--cn-accent); }
+  ul { list-style: none; margin: 0; padding: 0.5rem; position: absolute; inset-inline-end: 0; bottom: calc(100% + 0.5rem); width: min(18rem, calc(100vw - 2rem)); max-height: 60vh; overflow-y: auto; border: 1px solid var(--sl-color-hairline); border-radius: 0.6rem; background: var(--sl-color-bg); box-shadow: 0 12px 30px color-mix(in oklab, var(--cn-ink) 18%, transparent); }
+  li { margin: 0; padding-inline-start: calc(var(--d) * 0.8rem); }
+  a { display: block; padding: 0.3rem 0.6rem; border-radius: 0.3rem; color: var(--sl-color-gray-2); text-decoration: none; font-size: var(--sl-text-sm); }
+  a:hover { color: var(--sl-color-white); background: var(--sl-color-gray-6); }
+  @media (min-width: 72rem) { cn-otp { display: none; } }
+</style>

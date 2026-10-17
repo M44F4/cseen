@@ -1,0 +1,48 @@
+---
+title: Packs and imports
+description: A small core and optional packs, each with its own import path.
+sidebar:
+  order: 7
+---
+
+The core is small: it draws, sorts, animates and mounts. Everything else is a **pack** that depends only on the core, and a pack never depends on another pack.
+
+| Import | What it holds |
+| --- | --- |
+| `@@pkg@@` | scenes, cameras, shapes, text and code on planes, SVG on planes, animation, pen, arrows and pulses, orbit, `mount` |
+| `@@pkg@@/devices` | monitor, tv, tablet, phone, laptop, browser, terminal, keyboard, mouse, router, antennas, microphones, speaker, camera, server, database, cloud |
+| `@@pkg@@/ui` | progress, notification, toast, dialog, badge and chat. Placed on a screen with `device.put()` |
+| `@@pkg@@/charts` | bar, line, area, scatter, bubbles, pie, donut, histogram, heatmap, radar, sparkline |
+| `@@pkg@@/waves` | sine, longitudinal, standing, rings, directional (sonar), cone, spherical, plane, interference, echo |
+| `@@pkg@@/optics` | pinhole camera with image plane and focal length, stereo rig with disparity and depth |
+| `@@pkg@@/math` | graph with tangent and Riemann sums, matrices and their product, plane under a matrix, vector fields, number line, unit circle |
+| `@@pkg@@/flow` | diagram with automatic layout (layered, tree, force), flowchart, tree, edges that trace on and carry a pulse |
+
+A page that only needs a monitor does not load the chart code.
+
+## Where things belong
+
+If it is a physical object it is `devices`. If it lives inside a screen it is `ui`. If it takes numbers and draws them it is `charts`. If it moves through space it is `waves`. If it is boxes and arrows that should place themselves it is `flow`.
+
+## Imports only point downward
+
+Packs import `core`, `draw` and `anim`, never each other. A test walks the imports and fails on a sideways one, so a pack stays independent and cheap to import.
+
+## Putting a pack object on a screen
+
+Charts and UI elements are planes, so they sit on a device screen like anything else:
+
+```ts
+import { Scene, ground } from '@@pkg@@';
+import { monitor } from '@@pkg@@/devices';
+import { bars } from '@@pkg@@/charts';
+import { progress } from '@@pkg@@/ui';
+
+const s = new Scene();
+const screen = s.add(monitor({ width: 5 }));
+screen.put(bars({ data: [4, 7, 5, 9], axes: false, size: [3, 1.2] }), { at: [0.05, 0.1], width: 0.6 });
+screen.put(progress({ kind: 'ring', value: 0.7 }), { at: [0.7, 0.1], width: 0.25 });
+s.add(ground());
+```
+
+The reference has a page per pack: [core](/reference/core/), [devices](/reference/devices/), [UI](/reference/ui/), [charts](/reference/charts/), [waves](/reference/waves/), [optics](/reference/optics/) [maths](/reference/math/) and [graphs and flow](/reference/flow/).

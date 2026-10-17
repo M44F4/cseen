@@ -1,0 +1,48 @@
+---
+title: Use in Astro
+description: Render the still at build time and bring it to life in the browser.
+sidebar:
+  order: 2
+---
+
+This is how the site you are reading works. The scene is drawn when the page is built, so there is a figure before any JavaScript runs, and a script makes it live when the page loads.
+
+```astro norun
+---
+// src/components/Figure.astro
+import { Scene, Timeline, box, ground, fadeIn, renderStill } from '@@pkg@@';
+
+const s = new Scene({ title: 'A box fading in' });
+s.add(ground());
+const b = s.add(box({ at: [0, 0, 0], role: 'accent' }));
+const tl = new Timeline();
+tl.play(fadeIn(b));
+
+const still = renderStill(s, tl);
+---
+<figure class="figure" set:html={still} />
+
+<script>
+  import { Scene, Timeline, box, ground, fadeIn, mount } from '@@pkg@@';
+  // build the same scene, then mount over the server markup
+  const s = new Scene({ title: 'A box fading in' });
+  s.add(ground());
+  const b = s.add(box({ at: [0, 0, 0], role: 'accent' }));
+  const tl = new Timeline();
+  tl.play(fadeIn(b));
+  mount(document.querySelector('.figure')!, s, { timeline: tl });
+</script>
+```
+
+Two things to know:
+
+- **Share the scene.** Put the scene in a function in its own module and call it from both places, so the still and the live figure cannot drift apart.
+- **Import the stylesheet once**, in your layout: `import '@@pkg@@/cseen.css'`.
+
+## Heavy scenes
+
+Mount only when the figure scrolls into view. The `mount` option `onlyVisible` (on by default) already pauses animation off screen; for a scene that is costly to build, wrap the script in an `IntersectionObserver`, as this site's demo windows do.
+
+## Theming
+
+Set `--cn-ink`, `--cn-bg` and `--cn-accent` where your site sets its own colours, and the figures follow. This site maps Starlight's colour variables to the same three, so one palette drives the page and the figures.

@@ -1,0 +1,8 @@
+Fonts used by the cseen docs site
+
+Orbitron - Matt McInerney (https://github.com/theleagueof/orbitron)
+Instrument Sans - Instrument (https://github.com/Instrument/instrument-sans)
+JetBrains Mono - JetBrains (https://github.com/JetBrains/JetBrainsMono)
+
+All three are licensed under the SIL Open Font License, Version 1.1.
+Full text: https://openfontlicense.org/open-font-license-official-text/

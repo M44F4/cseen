@@ -1,0 +1,18 @@
+---
+// The landing page (the root route) and the 404 page draw their own heading; every other page keeps Starlight's, with a
+// small label above it saying what kind of page this is: a tutorial, an explanation, a how-to or a reference.
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+const id = Astro.locals.starlightRoute.id;
+const landing = id === '' || id === '404';   // both draw their own heading
+const kinds: Record<string, string> = {
+  start: 'Tutorial', concepts: 'Explanation', guides: 'How-to', gallery: 'Gallery', reference: 'Reference',
+  'cheat-sheet': 'Reference', glossary: 'Reference', troubleshooting: 'How-to', docs: 'Overview', playground: 'Try it', examples: 'Try it',
+};
+const kind = kinds[id.split('/')[0]];
+---
+{!landing && kind && <p class="page-kind">{kind}</p>}
+{landing ? null : <Default />}
+<style is:global>
+  .page-kind { margin: 0 0 0.4rem; font-family: var(--sl-font-mono); font-size: var(--sl-text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--cn-accent); }
+  .page-kind + .content-panel, .page-kind + h1 { margin-top: 0; }
+</style>

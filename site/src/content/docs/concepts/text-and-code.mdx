@@ -1,0 +1,55 @@
+---
+title: Text and code on planes
+description: Wrapped, sized, marked and typed text on any plane, including a screen.
+sidebar:
+  order: 4
+---
+
+import Demo from '../../../components/Demo.astro';
+
+`write` puts text on any plane. `code` does the same for code, coloured by a small tokenizer. Both wrap to their box.
+
+<Demo id="core/writing" />
+
+`u` and `v` are the directions of the text's right and up, so the plane can face any way: a floor, a wall, a screen.
+
+## Screens
+
+Devices with a screen have `write` and `code`. The text is laid out inside the screen, from the top left.
+
+<Demo id="core/typing" />
+
+`typeOn` types it letter by letter. Wrapping is computed before typing, so words never jump lines in the middle of a word.
+
+## A terminal
+
+Terminals start empty. `write()` puts lines in them.
+
+<Demo id="core/shell" />
+
+## Wrapping and marks
+
+`wrap` is `'word'`, `'char'` or `'none'`. `mark` colours chosen words with a role or any CSS colour, matching strings, regular expressions or `[start, end]` ranges.
+
+```ts
+import { Scene, write } from '@@pkg@@';
+
+const s = new Scene({ view: 'front' });
+s.add(write('Deploying to production. This takes two minutes.', {
+  size: [4, 1.2],
+  fontSize: 'md',
+  mark: { production: 'accent', 'two minutes': 's2' },
+}));
+```
+
+<Demo id="core/wrapping" />
+
+## Sizes that fit
+
+Sizes can be world units, a preset (`'sm'`, `'md'` or `'lg'`, relative to the box), or `lines: n`, meaning n lines fill the box. Text that still does not fit shrinks, or is cut off if you ask for `overflow: 'clip'`.
+
+<Demo id="core/sizing" />
+
+## Limits
+
+Text widths assume a monospace font, which is the default. For another font, give the layout a `charWidth`. The widths are approximate for custom fonts.

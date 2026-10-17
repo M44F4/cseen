@@ -1,0 +1,16 @@
+---
+// The small things that make the site feel like its own: copy toasts, tooltips, keyboard shortcuts, the
+// reading and navigation bars and the ring over figures. One bundle, on every page.
+---
+<script>
+  import { watchCopyButtons } from '../scripts/toast';
+  import { startTooltips } from '../scripts/tooltips';
+  import { startShortcuts } from '../scripts/shortcuts';
+  import { startProgress } from '../scripts/progress';
+  import { startCursor } from '../scripts/cursor';
+  watchCopyButtons();
+  startTooltips();
+  startShortcuts();
+  startProgress();
+  startCursor();
+</script>

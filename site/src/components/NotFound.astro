@@ -1,0 +1,36 @@
+---
+// The page for an address that has nothing on it: the 404 is written on the ground with the library, and the way back is one click.
+import Mini from './Mini.astro';
+import Flag from './Flag.astro';
+import { BASE } from '../lib/links.ts';
+---
+<Flag name="cn-nf" />
+<div class="nf">
+  <p class="kicker">Error 404</p>
+  <div class="fig"><Mini id="core/not-found" flat tight quiet label="The digits 4, 0 and 4 written on a lattice seen from an angle, then lifted off the ground" /></div>
+  <h1>Page not found</h1>
+  <p class="lede">That address has nothing on it. The page may have moved, or the link may have a typo.</p>
+  <p class="actions">
+    <a class="btn primary" href={`${BASE}/`}>Back to the start</a>
+    <a class="btn" href={`${BASE}/gallery/core/`}>Browse the gallery</a>
+    <a class="btn" href={`${BASE}/reference/`}>Open the reference</a>
+  </p>
+</div>
+<style is:global>
+  /* this page draws its own heading, so Starlight's empty title strip and the rule under it go */
+  :root.cn-nf .content-panel:first-of-type { display: none; }
+  :root.cn-nf .content-panel { border-top: 0; }
+</style>
+<style>
+  .nf { display: grid; justify-items: center; text-align: center; padding-block: 1rem 2rem; }
+  .kicker { margin: 0 0 1rem; font-family: var(--sl-font-mono); font-size: var(--sl-text-xs); text-transform: uppercase; letter-spacing: 0.14em; color: var(--cn-accent); }
+  .fig { width: min(100%, 40rem); border-radius: 0.8rem; overflow: hidden; background: radial-gradient(closest-side, color-mix(in oklab, var(--cn-accent) 10%, transparent), transparent); }
+  .fig :global(cseen-mini) { background: transparent; }
+  h1 { margin: 1.6rem 0 0; font-size: var(--sl-text-4xl); line-height: 1.1; }
+  .lede { margin: 0.8rem 0 0; max-width: 32rem; color: var(--sl-color-gray-2); }
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7rem; margin: 1.6rem 0 0; }
+  .btn { display: inline-block; padding: 0.6rem 1.2rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.5rem; color: var(--sl-color-white); text-decoration: none; font-weight: 600; }
+  .btn:hover { border-color: var(--cn-accent); }
+  .btn.primary { background: var(--cn-accent); border-color: var(--cn-accent); color: var(--cn-bg); }
+  .btn:focus-visible { outline: 2px solid var(--cn-accent); outline-offset: 2px; }
+</style>

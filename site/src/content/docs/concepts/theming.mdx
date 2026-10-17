@@ -1,0 +1,77 @@
+---
+title: Theming
+description: Any palette works. The library defines a contract, not themes.
+sidebar:
+  order: 3
+---
+
+import Demo from '../../../components/Demo.astro';
+
+@@name@@ does not know any theme by name. It defines a **contract**: up to three CSS variables, set on the figure or on any parent, and everything else is derived from them. This site works the same way: the sun and moon button in the header switches light and dark, and **Customise** sets those three variables to any colours you like. Every page, chart and device follows.
+
+## The three variables
+
+```css
+.figure {
+  --cn-ink: #17181a;      /* lines and text (default: currentColor) */
+  --cn-bg: #f6f5f1;       /* the page background (default: Canvas) */
+  --cn-accent: #0d8f6b;   /* the thing to look at */
+}
+```
+
+None is required. With nothing set, ink is `currentColor` and the background is `Canvas`, so a figure works on any page.
+
+## What is derived
+
+| Value | Made from |
+| --- | --- |
+| faint lines and text | ink mixed 45% into the background |
+| grid | ink mixed 16% into the background |
+| device bodies | ink mixed 5% into the background |
+| series colours `s1` to `s8` | the accent turned around the colour wheel in OKLCH, keeping its lightness and strength |
+| sequential ramp | background to accent |
+| diverging ramp | the accent's complement, the background, the accent |
+
+Nothing branches on a theme name or on light versus dark. Series colours keep the accent's lightness, so they sit as well on a dark background as the accent does. A theme called "banana" works too.
+
+<Demo id="charts/grouped" />
+
+Switch the theme and watch the series colours turn with the accent.
+
+## Overriding
+
+Any derived value can still be set by hand:
+
+```css
+.figure {
+  --cn-s3: hotpink;
+  --cn-faint: #888;
+  --cn-grid: #ddd;
+}
+```
+
+The values the library reads are the resolved ones, `--c-ink`, `--c-bg`, `--c-accent`, `--c-faint`, `--c-grid`, `--c-surface` and `--c-s1` to `--c-s8`. Use them inside imported SVGs (`var(--c-ink)`). Do not set them yourself; set the `--cn-` ones.
+
+## Roles
+
+Colours are named by role, not by value: `role: 'accent'`, `role: 's2'`. Add your own with a class:
+
+```css
+.cseen .cn-r-sky { --c: skyblue; }
+```
+
+```ts
+import { box } from '@@pkg@@';
+
+box({ role: 'sky' });
+```
+
+## Terminals and screens
+
+Terminals stay dark in every theme, with their own variables `--cn-term-bg` and `--cn-term-fg`. Pass `light: true` for one that follows the theme.
+
+<Demo id="devices/terminal" />
+
+## Older browsers
+
+Series colours (the colours of chart series) are derived with relative colour syntax, which all current browsers support. In an older browser they fall back to a fixed, accessible palette: charts stay readable, but their colours no longer come from your theme.

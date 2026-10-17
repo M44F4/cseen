@@ -1,0 +1,48 @@
+---
+title: Render on the server
+description: Produce a standalone SVG string with no browser.
+sidebar:
+  order: 4
+---
+
+The same scene that plays in the browser renders to a plain SVG string anywhere JavaScript runs.
+
+```ts
+import { Scene, Timeline, box, ground, fadeIn, moveBy, renderStill } from '@@pkg@@';
+
+const s = new Scene({ title: 'A box that moves' });
+s.add(ground());
+const b = s.add(box({ at: [0, 0, 0], role: 'accent' }));
+
+const tl = new Timeline();
+tl.play(fadeIn(b, 0.5));
+tl.play(moveBy(b, [3, 0, 0], 1));
+
+const atEnd = renderStill(s, tl);        // the end of the timeline
+const atStart = renderStill(s, tl, 0);   // any moment you like
+console.log(atEnd.slice(0, 60));
+```
+
+`renderStill(scene, timeline, t)` seeks to `t` (the end by default) and returns a complete `<svg>`. With no timeline, `scene.svg()` does the same.
+
+## What you get
+
+A standalone `<svg>` with a `viewBox`, an accessible name from `title`, and classes that your CSS and the `cseen.css` stylesheet colour. It has no scripts and no external references. Put it in HTML, write it to a file, or inline it in an email.
+
+## Writing files
+
+```ts norun
+import { writeFileSync } from 'node:fs';
+
+writeFileSync('figure.svg', renderStill(s, tl));
+```
+
+A file on its own has no theme: the colours come from CSS variables, which a standalone file does not have unless you inline them. Set the three variables on the `<svg>` element (add a `style` attribute) or inline the contents of `cseen.css` into a `<style>` element.
+
+## Build time and live
+
+Render the still at build time for the first paint, and `mount` the same scene in the browser. See [Use in Astro](/guides/astro/) and [Embed in plain HTML](/guides/embed-html/).
+
+## Deterministic output
+
+The sketch look wobbles lines, but it is seeded by each item's position in the scene, so the server and the browser draw the same wobble. The same scene always produces the same markup.

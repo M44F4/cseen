@@ -1,0 +1,78 @@
+---
+// A small live figure with no chrome: drawn at build time, then it plays and can be dragged.
+import { byId } from '../demos/index.ts';
+import { prepare } from '../demos/prepare.ts';
+import { renderStill } from '../../../src/index.ts';
+
+interface Props { id: string; spin?: number; /** framed by its own bounds, not a sphere: for a wide figure that is never turned */ tight?: boolean; label?: string; /** a flat figure: no dragging to turn it */ flat?: boolean; /** with a flat figure: the world length of one cell of the lattice behind it (the figure's own squares are this wide) */ cell?: number; /** only the first paint: the page brings it to life itself */ still?: boolean; /** no hover label from the scene's title: the figure is decoration, its aria-label still names it */ quiet?: boolean }
+const { id, spin = 0, label, flat = false, cell = 1, tight = false, still: paintOnly = false, quiet = false } = Astro.props;
+const d = byId.get(id);
+if (!d) throw new Error(`Unknown demo "${id}"`);
+const m = prepare(d.make(d.defaults), d, tight);
+const still = quiet ? renderStill(m.s, m.tl).replace(/<title>[^<]*<\/title>/, "") : renderStill(m.s, m.tl);
+const [w, h] = m.s.size;
+// a flat figure that lies on the ground tells the page where its lattice is: the origin and one unit along x and y,
+// as fractions of the figure's width, so a grid drawn behind it can line up with the drawing
+const o = m.s.screen([0, 0, 0]), gx = m.s.screen([cell, 0, 0]), gy = m.s.screen([0, cell, 0]);
+// the grid is given as the first paint shows it (at the camera's starting zoom), so the page has the right one before the figure is alive; `data-zoom0` lets the live figure rescale it as the zoom changes
+// the camera zooms about the middle of the scene's region (the whole picture when it has none)
+const rg = m.s.region, mid = rg ? [rg.x + rg.w / 2, rg.y + rg.h / 2] : [w / 2, h / 2], z0 = (m.s.camera.props.zoom as number) || 1;
+const grid = flat ? [o[0], o[1], gx[0] - o[0], gx[1] - o[1], gy[0] - o[0], gy[1] - o[1]].map((n) => +(n / w).toFixed(5)).join(',') : undefined;
+---
+{paintOnly ? <div data-id={id} role="group" aria-label={label ?? d.title} set:html={still} /> : <cseen-mini data-id={id} data-spin={spin} data-flat={flat ? "" : undefined} data-tight={tight ? "" : undefined} data-quiet={quiet ? "" : undefined} data-grid={grid} data-zoom0={flat ? z0 : undefined} data-zoomc={flat ? mid.map((n) => +(n / w).toFixed(5)).join(',') : undefined} role="group" aria-label={label ?? d.title} style={`aspect-ratio:${w} / ${h}`} set:html={still} />}
+<script>
+  class CseenMini extends HTMLElement {
+    private stop?: () => void;
+    private io?: IntersectionObserver;
+    connectedCallback() {
+      this.io = new IntersectionObserver(async (e) => {
+        if (!e.some((x) => x.isIntersecting)) return;
+        this.io?.disconnect();
+        const [lib, { byId }, { prepare }] = await Promise.all([import('cseen'), import('../demos/index.ts'), import('../demos/prepare.ts')]);
+        const d = byId.get(this.dataset.id ?? '');
+        // removed from the page while the code was loading: there is nothing to bring to life
+        if (!d || !this.isConnected) return;
+        const made = prepare(d.make(d.defaults), d, this.hasAttribute('data-tight'));
+        const player = lib.mount(this, made.s, { timeline: made.tl, loop: { pause: 1.2 } });
+        const svg = this.querySelector('svg');
+        if (!svg) { player.destroy(); return; }
+        // the browser shows an SVG's <title> as a hover label; a quiet figure has none (and keeps none if it is redrawn)
+        if (this.hasAttribute('data-quiet')) {
+          const strip = () => svg.querySelectorAll(':scope > title').forEach((t) => t.remove());
+          strip();
+          new MutationObserver(strip).observe(svg, { childList: true });
+        }
+        const orb = this.hasAttribute('data-flat') ? undefined : lib.orbit(svg, made.s, { onChange: () => player.invalidate(), autoRotate: Number(this.dataset.spin) || undefined });
+        // A figure must not trap scrolling: wheel and touch drags go to the page (or the reel row), pinch (ctrl+wheel) still zooms, a mouse still drags to turn.
+        if (orb) {
+          svg.style.touchAction = 'pan-x pan-y pinch-zoom';
+          svg.addEventListener('wheel', (e) => { if (!e.ctrlKey) e.stopImmediatePropagation(); }, { capture: true, passive: true });
+        }
+        // While the camera zooms, tell the page where the figure's grid is, so a grid behind it can follow.
+        const cam = made.s.camera, z0 = Number(this.dataset.zoom0) || 1, centre = (this.dataset.zoomc ?? '0.5,0.5').split(',').map(Number);
+        // the grid as it would be at zoom 1
+        const base = (this.dataset.grid ?? '').split(',').map(Number).map((n, i) => (i < 2 ? centre[i] + (n - centre[i]) / z0 : n / z0));
+        let raf = 0, zoom = z0;
+        const poll = () => {
+          raf = requestAnimationFrame(poll);
+          const z = cam.props.zoom as number;
+          if (z === zoom) return;
+          zoom = z;
+          const g = [centre[0] + (base[0] - centre[0]) * z, centre[1] + (base[1] - centre[1]) * z, base[2] * z, base[3] * z, base[4] * z, base[5] * z];
+          this.dataset.grid = g.map((n) => +n.toFixed(5)).join(',');
+          this.dispatchEvent(new CustomEvent('cseen-grid', { bubbles: true }));
+        };
+        if (base.length === 6) poll();
+        this.stop = () => { cancelAnimationFrame(raf); orb?.destroy(); player.destroy(); };
+      }, { rootMargin: '150px' });
+      this.io.observe(this);
+    }
+    disconnectedCallback() { this.io?.disconnect(); this.stop?.(); this.stop = undefined; }
+  }
+  if (!customElements.get('cseen-mini')) customElements.define('cseen-mini', CseenMini);
+</script>
+<style>
+  cseen-mini { display: block; position: relative; width: 100%; background: var(--cn-bg); }
+  cseen-mini :global(svg.cseen) { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+  cseen-mini[data-flat] :global(svg.cseen) { cursor: default; }
+</style>
