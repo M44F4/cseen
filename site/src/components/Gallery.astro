@@ -1,0 +1,35 @@
+---
+import Flag from './Flag.astro';
+// A grid of everything in a pack. Thumbnails are plain SVG made at build time; a click opens a window you can turn and change.
+import { inPack, PACKS } from '../demos/index.ts';
+import type { Pack } from '../demos/index.ts';
+import { thumbStill } from '../lib/thumb.ts';
+
+interface Props { pack: Pack }
+const { pack } = Astro.props;
+const info = PACKS.find((p) => p.id === pack)!;
+const demos = inPack(pack);
+const groups = new Map<string, typeof demos>();
+for (const d of demos) { const g = d.group ?? info.title; groups.set(g, [...(groups.get(g) ?? []), d]); }
+const thumb = (d: (typeof demos)[number]) => { const m = d.make(d.defaults); return thumbStill(m.s, m.tl); };
+---
+<Flag name="cn-wide" />
+{[...groups].map(([name, list]) => (
+  <section class="gl-group">
+    {groups.size > 1 && <h2>{name}</h2>}
+    <ul class="gl-grid">
+      {list.map((d) => (
+        <li>
+          <button type="button" class="gl-card" id={d.id.split('/')[1]} data-open={d.id} aria-label={`Open ${d.title}`}>
+            <span class="gl-thumb" set:html={thumb(d)} />
+            <span class="gl-name">{d.title}</span>
+            {d.summary && <span class="gl-sum">{d.summary}</span>}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </section>
+))}
+<script>
+  import './demo/viewers.ts';
+</script>

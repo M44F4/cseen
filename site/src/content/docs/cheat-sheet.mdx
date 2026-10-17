@@ -1,0 +1,139 @@
+---
+title: Cheat sheet
+description: The calls you use most, on one page.
+sidebar:
+  label: Cheat sheet
+---
+
+The calls you reach for most. Look any of them up in [all exports](/reference/all/), and paste anything here into the [playground](/playground/).
+
+## A scene
+
+```ts norun
+import { Scene, ground, axes, box, label, mount } from '@@pkg@@';
+import '@@pkg@@/cseen.css';
+
+const s = new Scene({ view: 'iso' });          // 'iso' | 'front' | 'side' | 'top' | { yaw, pitch } | a perspective Camera
+s.add(ground(), axes());                       // add anything, several at once
+const b = s.add(box({ at: [0, 0, 0], size: 1.5, role: 'accent' }));
+s.add(label('a box', [0, 0, 2], { anchor: 'middle' }));
+
+mount(document.querySelector('#figure')!, s);
+```
+
+Axes are always **x right, y into the scene, z up**. `at` is the point an object stands on.
+
+## Put and move things
+
+| To | Write |
+|---|---|
+| Place | `at: [x, y, z]` on any object |
+| Turn | `rot: [rx, ry, rz]` in degrees |
+| Resize | `scale: 0.6`, or `size` on shapes |
+| Colour | `role: 'accent' \| 'ink' \| 'faint' \| 'warm' \| 'cool' \| 's1'..'s8'` (never a hex colour) |
+| See-through | `alpha` on a surface, `opacity` on anything |
+| Move together | `group({ rot })`, then `g.add(...)` |
+| Stay attached | `b.anchor([x, y, z])` is a point that follows `b` |
+| Join two things | `arrow(a.anchor(...), b.anchor(...))` or `link(a, b, { bend })` |
+
+## Shapes
+
+```ts norun
+line(a, b)   arrow(a, b)   path([a, b, c])   curve((t) => [x, y, z])
+polygon([a, b, c])   rect(at, [w, h])   circle(at, r)   dot(at)   dimension(a, b, 'text')
+box({ at, size })   sphere({ at, r })   cylinder({ at, r, h })   // sphere and cylinder come from '@@pkg@@/devices'
+surface((u, v) => [x, y, z])   heightField((x, y) => z)
+```
+
+## Text and code
+
+```ts norun
+label('upright text', [x, y, z])
+write('wrapped text on a plane', { at, u, v, size })
+code(source)           // coloured code on a screen
+screen.put(...)        // place things on a device's screen
+```
+
+## Animate
+
+```ts norun
+import { Timeline, fadeIn, draw, moveTo, moveBy, tween, stagger, par, seq, wait } from '@@pkg@@';
+
+const tl = new Timeline();
+tl.play(stagger(0.2, fadeIn(a), fadeIn(b)));        // one after another, a little apart
+tl.play(par(moveBy(a, [0, 2, 0], 1), draw(line)));   // together
+tl.chapter('move').play(moveTo(b, [3, 0, 0], 1.2));  // a named step to jump to
+tl.play(tween(s.camera, { yaw: 120 }, { duration: 2 }));
+tl.lockFit(s);                                       // keep the framing steady
+mount(el, s, { timeline: tl });
+```
+
+## Show it
+
+| To | Write |
+|---|---|
+| Play in the browser | `mount(el, s, { timeline: tl })` |
+| Let the reader turn it | `orbit(svg, s, { onChange: () => player.invalidate() })` and `fit: 'sphere'` |
+| Render a plain SVG string | `renderStill(s, tl)`, on the server or anywhere |
+| Theme it | set `--cn-ink`, `--cn-bg` and `--cn-accent` on the figure or a parent |
+
+## Build a drawing step by step
+
+```ts norun
+import { Construct, arcSegs, lineSegs, rotateSegs, segsD, circleD, lineD, polar, measureD, tween, reverse } from '@@pkg@@';
+
+const c = s.add(new Construct({ box: [0, 0, 200, 200], size: [3, 3] }));   // you draw in the box's units, y down
+const ring = c.add({ d: circleD(100, 100, 70), stroke: 'faint', props: { draw: 0 } });
+const leaf = c.add({ d: segsD(arcSegs(100, 100, 60, 0, 2), true), paint: 'accent', props: { draw: 0, fill: 0 } });
+c.add({ text: 'r', at: [100, 20], props: { op: 0 } });                      // a small tag
+
+tl.play(tween(ring, { draw: 1 }, { duration: 1 }));                          // trace on
+tl.play(tween(leaf, { draw: 1, fill: 0.4, spin: 90 }, { duration: 1 }));     // fill, turn
+tl.play(reverse(there));                                                     // play a tween with a `from` backwards
+```
+
+| Part property | Does |
+|---|---|
+| `draw`, `fill`, `line` | How much outline is drawn, and the opacity of the fill and the line |
+| `spin`, `scale` | Turn (degrees) and grow about `about` |
+| `dx`, `dy`, `op` | Move, and fade the whole part |
+
+| Helper | Gives |
+|---|---|
+| `arcSegs`, `lineSegs`, `rotateSegs` | Pieces of an outline, and a copy turned about a point |
+| `segsD(segs, close?)`, `circleD`, `lineD`, `measureD` | A path string |
+| `polar(centre, r, deg)` | A point at a distance and an angle |
+| `c.at(x, y)` | Where a point of the drawing is in the scene |
+| `s.screen(p)` | Where a point of the scene lands in the picture |
+
+See [Constructions](/concepts/constructions/).
+
+## Diagrams
+
+| | |
+|---|---|
+| `diagram({ layout, direction })` | Boxes and arrows that place themselves. `layout` is `layered` (default), `tree` or `force`; `direction` is `down` or `right` |
+| `d.node(id, label, { shape, role })` | Add a box. Shapes: `box`, `round`, `diamond`, `circle` |
+| `d.edge(from, to, { label, role })` | Join two nodes by id |
+| `flowchart(steps)` | A flowchart from a list of steps; a `decision` lists its branches |
+| `treeDiagram({ label, children })` | A tree from nested data |
+| `draw(edge, 1)` / `fadeIn(node, 1)` | Trace an edge on, fade a node in |
+| `pulse(edge.rail())` | A dot that rides an edge |
+| `d.at(id, 'left')` | A point on a node, to end a `link` on |
+
+See [Diagrams and flow](/concepts/flow/).
+
+## Packs
+
+| Import | For |
+|---|---|
+| `@@pkg@@` | scenes, shapes, text, animation, `mount` |
+| `@@pkg@@/devices` | monitor, laptop, phone, keyboard, router, server and more |
+| `@@pkg@@/ui` | progress, notifications, dialogs, badges, chat |
+| `@@pkg@@/charts` | bar, line, area, scatter, pie, heatmap, radar |
+| `@@pkg@@/waves` | sine, sonar, interference, echo |
+| `@@pkg@@/optics` | pinhole camera, stereo rig |
+| `@@pkg@@/math` | graphs, matrices, vector fields, unit circle |
+| `@@pkg@@/flow` | flowcharts, trees and networks that lay themselves out |
+
+Not sure which? See [Packs and imports](/concepts/packs/).

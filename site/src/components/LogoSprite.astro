@@ -1,0 +1,5 @@
+---
+// The logo drawn once per page: Logo.astro points at these symbols with <use>. Generated art, see scripts/logo.mjs.
+import { LOGO_SPRITE } from '../brand/logo-sprite.ts';
+---
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false" set:html={LOGO_SPRITE} />

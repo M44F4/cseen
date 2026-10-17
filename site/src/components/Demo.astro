@@ -1,0 +1,16 @@
+---
+// One demo in the page: a window with the figure, view and playback controls, options and code.
+// The figure is drawn when the page is built, and comes alive when it scrolls into view.
+import { byId } from '../demos/index.ts';
+import { windowFor } from './demo/window.ts';
+
+interface Props { id: string }
+const { id } = Astro.props;
+const d = byId.get(id);
+if (!d) throw new Error(`Unknown demo "${id}". Known: ${[...byId.keys()].join(', ')}`);
+const { html } = windowFor(d);
+---
+<cseen-demo data-id={id} set:html={html} />
+<script>
+  import './demo/element.ts';
+</script>

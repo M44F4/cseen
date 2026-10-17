@@ -1,0 +1,8 @@
+---
+// Marks the page by putting a class on <html>, as the page is read. Stylesheets use it instead of `:has()`:
+// a `:has()` on the root is checked again whenever anything below it changes, and a playing figure changes
+// something on every frame, so the whole page was restyled 60 times a second.
+interface Props { name: string }
+const { name } = Astro.props;
+---
+<script is:inline define:vars={{ name }}>document.documentElement.classList.add(name);</script>

@@ -1,0 +1,47 @@
+---
+title: Introduction
+description: What the library is, what it is for, and how it differs from other ways of drawing a figure.
+sidebar:
+  order: 1
+---
+
+:::note[Status]
+cseen is early. The core works and is tested, but the API may still change before 1.0.
+:::
+
+import Demo from '../../../components/Demo.astro';
+
+@@name@@ draws illustrations and animations for the web, in 2D and 3D, as SVG that follows your CSS.
+
+It is for the figure in an article, a portfolio or documentation: a camera looking at a cube, a laptop typing code, a stereo rig recovering depth, a chart that animates in, a matrix bending the plane. You describe a scene in a few lines of TypeScript, animate it on a timeline, and put it on a page.
+
+<Demo id="core/buildup" />
+
+That figure is a window you can turn, scrub and edit. Every figure in these docs works the same way.
+
+## What makes it different
+
+Most tools that draw like this either make video, draw to a canvas that CSS cannot reach, or are 2D only. @@name@@ draws real SVG, so:
+
+- **Colours come from CSS, and any theme works.** Set up to three variables (ink, background, accent) and everything else, including chart palettes, is derived. No theme is built in, so a theme you have not made yet works too. Try the **Theme** button in the header: it changes this whole site.
+- **One coordinate system for 2D and 3D.** x to the right, y into the scene, z up. A flat diagram is just a scene seen from the front.
+- **Static first.** The same code produces a plain SVG at build time and an animated version in the browser.
+- **Scrubbable.** A scene is a function of time, so playing, pausing, stepping and rendering a single frame all work the same way.
+- **Drawings that show how they are made.** A [construction](/concepts/constructions/) builds a figure from guides, circles and outlines that trace on, fill and turn.
+- **Diagrams that place themselves.** [Flowcharts, trees and networks](/concepts/flow/) are laid out for you, with edges that trace on and carry a pulse.
+- **Small and dependency free**, split into packs so you only ship what you use.
+
+## What it is not
+
+@@name@@ is not a game engine and not a 3D renderer. SVG has no depth buffer, so faces are drawn back to front, which suits floors, walls, boxes and keyboards but not millions of triangles. [Depth sorting and limits](/concepts/depth-and-limits/) says exactly where the edges are.
+
+## The name
+
+The name is meant to be said aloud: the **c** is *see*, and *seen* sounds like *scene*, so **cseen** says **see scene**. Rearrange its letters and you get **scene** itself. You describe a scene, and you see it.
+
+## Where to go next
+
+- [Install](/start/install/) the library.
+- Draw [your first scene](/start/first-scene/).
+- Learn [the coordinates and cameras](/start/coordinates-and-cameras/).
+- Browse the [gallery](/gallery/devices/) or open the [playground](/playground/).

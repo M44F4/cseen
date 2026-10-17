@@ -1,0 +1,41 @@
+---
+title: SVG on planes
+description: Lay a logo, a chart or a screenshot on any plane of the scene.
+sidebar:
+  order: 5
+---
+
+`plane` lays an SVG on any plane of the scene. It is how charts, screens and maths figures are built, and you can use it for your own.
+
+```ts
+import { Scene, plane, ground } from '@@pkg@@';
+
+const logo = '<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#111"/></svg>';
+
+const s = new Scene();
+s.add(ground(), plane({
+  svg: logo,
+  size: [2, 2],
+  at: [0, 0, 0],
+  u: [1, 0, 0], v: [0, 1, 0],             // lying on the ground
+  recolor: { '#111': 'var(--c-ink)' },    // fixed colours in the file follow the theme
+}));
+```
+
+`u` and `v` are the directions of the SVG's right and up in the scene. By default a plane is a wall facing you (along x and z).
+
+## Colours
+
+A logo has fixed colours. `recolor` swaps them for the theme's variables, so it follows the palette. Inside an SVG you can also use the resolved variables directly: `var(--c-ink)`, `var(--c-bg)`, `var(--c-accent)`.
+
+## Safety
+
+Imported files are sanitised: scripts, event handlers and external references are removed, and ids are made unique so two figures on a page never collide.
+
+## Parallel and perspective cameras
+
+With a parallel camera the placement is exact: one affine transform. With a perspective camera an SVG cannot be foreshortened directly, so the renderer cuts the plane into small pieces and approximates. `cells` sets how many pieces per side; more is smoother and slower.
+
+## Your own plane-based nodes
+
+`SvgPlane` is the shared base for charts, screen elements and maths figures. A subclass says how to draw itself from its properties, and gets the plane, fading and placement for free.

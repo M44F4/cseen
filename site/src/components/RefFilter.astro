@@ -1,0 +1,70 @@
+---
+// A filter box for a long reference page: type "fade" and only the matching entries stay. Without
+// scripting the page is simply the full list.
+import Flag from './Flag.astro';
+interface Props { rows?: boolean }
+const { rows = false } = Astro.props;
+---
+<Flag name="cn-ref" />
+<ref-filter data-rows={rows ? '' : undefined} hidden>
+  <label>
+    <span class="sr-only">Filter</span>
+    <input type="search" placeholder={rows ? 'Filter all exports' : 'Filter this page'} autocomplete="off" spellcheck="false" />
+  </label>
+  <span class="count" aria-live="polite"></span>
+</ref-filter>
+
+<script>
+  class RefFilter extends HTMLElement {
+    connectedCallback() {
+      this.hidden = false;
+      const input = this.querySelector('input')!;
+      const count = this.querySelector('.count')!;
+      const root = this.closest('.sl-markdown-content') ?? document.body;
+      type Unit = { nodes: HTMLElement[]; text: string };
+      let units: Unit[] = [];
+      let heads: HTMLElement[] = [];
+
+      if (this.hasAttribute('data-rows')) {
+        units = [...root.querySelectorAll<HTMLElement>('tbody tr')].map((tr) => ({ nodes: [tr], text: tr.textContent!.toLowerCase() }));
+      } else {
+        // an entry is a level-3 heading and everything up to the next heading
+        const wrappers = [...root.querySelectorAll<HTMLElement>('.sl-heading-wrapper')];
+        heads = wrappers.filter((w) => w.classList.contains('level-h2'));
+        for (const w of wrappers.filter((x) => x.classList.contains('level-h3'))) {
+          const nodes: HTMLElement[] = [w];
+          for (let n = w.nextElementSibling as HTMLElement | null; n && !n.classList.contains('sl-heading-wrapper'); n = n.nextElementSibling as HTMLElement | null) nodes.push(n);
+          units.push({ nodes, text: nodes.map((n) => n.textContent).join(' ').toLowerCase() });
+        }
+      }
+
+      const apply = () => {
+        const q = input.value.trim().toLowerCase();
+        let shown = 0;
+        for (const u of units) {
+          const match = !q || u.text.includes(q);
+          if (match) shown++;
+          for (const n of u.nodes) n.hidden = !match;
+        }
+        // a section heading goes when nothing under it is left
+        for (const h of heads) {
+          let any = false;
+          for (let n = h.nextElementSibling as HTMLElement | null; n && !n.classList.contains('level-h2'); n = n.nextElementSibling as HTMLElement | null) if (n.classList.contains('level-h3') && !n.hidden) { any = true; break; }
+          h.hidden = !!q && !any;
+        }
+        count.textContent = q ? `${shown} of ${units.length}` : `${units.length} entries`;
+      };
+      input.addEventListener('input', apply);
+      apply();
+    }
+  }
+  if (!customElements.get('ref-filter')) customElements.define('ref-filter', RefFilter);
+</script>
+
+<style>
+  ref-filter { display: flex; align-items: center; gap: 0.8rem; margin-block: 1rem; }
+  ref-filter[hidden] { display: none; }
+  input { flex: 1; max-width: 22rem; padding: 0.45rem 0.8rem; border: 1px solid var(--sl-color-hairline); border-radius: 0.5rem; background: var(--sl-color-bg); color: var(--sl-color-text); font: inherit; font-size: var(--sl-text-sm); }
+  input:focus-visible { outline: 2px solid var(--cn-accent); outline-offset: 1px; }
+  .count { font-family: var(--sl-font-mono); font-size: var(--sl-text-xs); color: var(--sl-color-gray-3); }
+</style>

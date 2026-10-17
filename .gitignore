@@ -1,0 +1,11 @@
+node_modules
+dist
+examples/out
+site/node_modules
+site/dist
+site/.astro
+
+site/src/content/docs/reference/*
+!site/src/content/docs/reference/index.mdx
+site/src/demos/ref-index.json
+site/public/pg-frame.html

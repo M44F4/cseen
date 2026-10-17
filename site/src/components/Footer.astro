@@ -1,0 +1,97 @@
+---
+// Starlight's edit link and previous/next stay, then one site footer for every page, landing included.
+import Default from '@astrojs/starlight/components/Footer.astro';
+import { site } from '../config.ts';
+import { BASE } from '../lib/links.ts';
+import pkg from '../../../package.json';
+import Logo from './Logo.astro';
+
+const cols = [
+  { title: 'Learn', links: [['Documentation', '/docs/'], ['Introduction', '/start/introduction/'], ['Your first scene', '/start/first-scene/'], ['Concepts', '/concepts/scene-and-nodes/'], ['Guides', '/guides/embed-html/']] },
+  { title: 'Explore', links: [['Gallery', '/gallery/core/'], ['Playground', '/playground/'], ['Examples', '/examples/']] },
+  { title: 'Reference', links: [['Core', '/reference/core/'], ['Devices', '/reference/devices/'], ['Charts', '/reference/charts/'], ['Cheat sheet', '/cheat-sheet/'], ['All packs', '/reference/']] },
+];
+---
+<Default />
+<script is:inline>{ const s = document.currentScript; s.closest('main')?.classList.add('cn-flush'); s.closest('.content-panel')?.classList.add('cn-flush'); }</script>
+<div class="cn-footer" data-cn-footer>
+ <div class="cn-footer-inner">
+  <div class="cn-footer-top">
+    <div class="cn-footer-brand">
+      <a class="cn-footer-logo" href={`${BASE}/`} aria-label={`${site.name}, home`}><Logo variant="full" label={site.name} /></a>
+      <p>{site.tagline}</p>
+      <p class="meta">MIT licence · v{pkg.version}</p>
+    </div>
+    {cols.map((c) => (
+      <nav aria-label={c.title}>
+        <h2>{c.title}</h2>
+        <ul>{c.links.map(([label, href]) => <li><a href={`${BASE}${href}`}>{label}</a></li>)}</ul>
+      </nav>
+    ))}
+    {site.repo && (
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul><li><a href={site.repo}>Source</a></li><li><a href={`${site.repo}/issues`}>Issues</a></li></ul>
+      </nav>
+    )}
+  </div>
+  <div class="cn-footer-bottom">
+    <span>Every figure on this site is drawn with {site.name}.</span>
+    <span class="credit">Built by <a href={site.author.url} rel="author">{site.author.name}</a></span>
+    <a href="#_top">Back to top ↑</a>
+  </div>
+ </div>
+</div>
+
+<script>
+  // The footer spans the whole window, under the sidebar as well. The sidebar stops where the footer begins.
+  const f = document.querySelector<HTMLElement>('[data-cn-footer]');
+  if (f) {
+    const wide = matchMedia('(min-width: 50rem)');
+    const root = document.documentElement;
+    /** stretches the footer across the whole window, past the content column it sits in */
+    const fit = () => {
+      f.style.marginInlineStart = '0'; f.style.width = 'auto';
+      f.style.marginInlineStart = `${-f.getBoundingClientRect().left}px`;
+      f.style.width = `${root.clientWidth}px`;
+    };
+    /** tells the sidebar how much of the footer is on screen, so it ends where the footer begins */
+    const sidebar = () => {
+      const seen = wide.matches ? Math.max(0, innerHeight - f.getBoundingClientRect().top) : 0;
+      root.style.setProperty('--cn-sb-bottom', `${seen}px`);
+    };
+    // scrolling only moves the sidebar's bottom edge, so it is updated in the scroll event itself (a frame late and the sidebar visibly overlaps the footer).
+    // Fitting the footer to the window (which measures, then writes) waits for a size change.
+    let q = 0;
+    const onSize = () => { cancelAnimationFrame(q); q = requestAnimationFrame(() => { fit(); sidebar(); }); };
+    fit(); sidebar();
+    addEventListener('scroll', sidebar, { passive: true });
+    addEventListener('scrollend', sidebar);
+    addEventListener('resize', onSize);
+    addEventListener('load', onSize);
+    document.fonts?.ready.then(onSize);
+    // anything above the footer that grows or shrinks (images, demos, expanding sections) moves it without a scroll or resize event
+    const ro = new ResizeObserver(onSize);
+    ro.observe(document.body); ro.observe(document.documentElement); ro.observe(f);
+  }
+</script>
+
+<style>
+  .cn-footer { margin-top: 3rem; border-top: 1px solid color-mix(in oklab, var(--cn-accent) 22%, transparent); background: var(--cn-header-bg); position: relative; z-index: 1; font-size: var(--sl-text-sm); color: var(--sl-color-gray-2); }
+  .cn-footer-inner { max-width: 72rem; margin-inline: auto; padding: 2.5rem 1.5rem 0; }
+  .cn-footer-top { display: grid; gap: 2rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cn-footer-brand { grid-column: 1 / -1; max-width: 32rem; }
+  .cn-footer-logo { display: block; height: 2.6rem; margin-bottom: 0.9rem; width: fit-content; }
+  .cn-footer-logo:hover { text-decoration: none; }
+  .cn-footer-brand p { margin: 0.4rem 0 0; text-wrap: balance; }
+  .meta { font-family: var(--sl-font-mono); font-size: var(--sl-text-xs); color: var(--sl-color-gray-3); }
+  h2 { margin: 0 0 0.6rem; font-family: var(--sl-font-mono); font-size: var(--sl-text-xs); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sl-color-gray-3); }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+  a { color: var(--sl-color-gray-2); text-decoration: none; }
+  a:hover { color: var(--sl-color-white); text-decoration: underline; text-decoration-color: var(--cn-accent); }
+  .cn-footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem 1.5rem; margin-top: 2rem; padding-block: 1rem 2rem; border-top: 1px solid color-mix(in oklab, var(--cn-accent) 22%, transparent); color: var(--sl-color-gray-3); font-size: var(--sl-text-xs); }
+  .credit a { color: var(--sl-color-gray-2); text-decoration: underline; text-decoration-color: var(--cn-accent); text-underline-offset: 0.2em; }
+  .credit a:hover { color: var(--sl-color-white); }
+  @media (min-width: 36rem) { .cn-footer-top { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (min-width: 64rem) { .cn-footer-brand { grid-column: auto; } .cn-footer-top { grid-template-columns: 1.8fr repeat(4, minmax(0, 1fr)); } }
+</style>

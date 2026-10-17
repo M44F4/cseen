@@ -1,0 +1,78 @@
+---
+title: Timeline and animation
+description: Tweens, combinators, chapters and playback.
+sidebar:
+  order: 2
+---
+
+import Demo from '../../../components/Demo.astro';
+
+Animation in @@name@@ is a function of time. A **timeline** is a list of tweens, and `seek(t)` rewinds everything to its starting state and replays up to `t`. So the picture depends only on the time: playing, pausing, scrubbing backwards and rendering one frame all work the same way.
+
+## Tweens
+
+Any property of any node, or of the camera, can be animated:
+
+```ts
+import { Scene, Timeline, box, tween } from '@@pkg@@';
+
+const s = new Scene();
+const cube = s.add(box({ at: [0, 0, 0] }));
+
+const tl = new Timeline();
+tl.play(tween(cube, { opacity: 0.2, pos: [4, 0, 0] }, { duration: 1.2, ease: 'out' }));
+```
+
+Properties are plain values: `pos`, `rot`, `scale`, `opacity`, `draw`, `alpha`, a camera's `yaw`, `pitch` and `zoom`, and each object's own: a chart's `grow` and `data`, a progress bar's `value`, a wave's `phase`, a stereo rig's `baseline`.
+
+Easing names are `linear`, `in`, `out`, `inOut` (the default), `smooth` and `back`, or pass your own function.
+
+## Ready-made animations
+
+```ts norun
+fadeIn(n)   fadeOut(n)   draw(n)   moveTo(n, p)   moveBy(n, d)   rotateTo(n, r)   scaleTo(n, k)   typeOn(text)
+```
+
+## Playing backwards
+
+`reverse(anim)` returns the same animation played backwards, so a figure can be built and then taken apart. Give every tween a `from` and a literal `to`. See [Constructions](/concepts/constructions/#taking-it-apart).
+
+## Combining
+
+```ts norun
+seq(a, b, c)        // one after another
+par(a, b)           // together
+stagger(0.2, a, b)  // together, each 0.2 s after the last
+wait(1)             // a gap
+```
+
+`timeline.play(x)` appends `x` after what is already there. `timeline.at(time, x)` places it at a time.
+
+<Demo id="core/buildup" />
+
+## Chapters
+
+`tl.chapter('name')` marks a step. `player.step()` jumps to the next one, which suits explainers. See [Build an explainer](/guides/explainer/).
+
+## Keeping the picture still
+
+By default the scene refits to its contents every frame, so a moving thing makes the picture breathe. `tl.lockFit(scene)` fixes the framing to fit every moment of the timeline. Call it once after building the timeline.
+
+## Playing it
+
+`mount` plays a timeline in the page and returns a player:
+
+```ts norun
+const player = mount(el, s, { timeline: tl, loop: { pause: 1.2 } });
+player.pause();
+player.seek(1.5);
+player.step();          // next chapter
+```
+
+It animates only while on screen, caps the frame rate with `maxFps`, and shows the final frame for visitors who prefer reduced motion. `player.invalidate()` redraws after a change you made by hand, such as moving the camera.
+
+## Animations that are not in the timeline
+
+Dashes that travel along a line (`flow: true`) run in CSS rather than in the timeline, so they move even in a plain, static SVG. Waves are a function of `phase`, which is periodic, so a looping timeline is seamless.
+
+<Demo id="shapes/arrows" />

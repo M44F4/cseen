@@ -1,0 +1,67 @@
+---
+title: Your first scene
+description: Draw a scene, animate it, and put it on a page.
+sidebar:
+  order: 3
+---
+
+import Demo from '../../../components/Demo.astro';
+
+You will build one small scene in four steps. Each figure below is the scene **so far**: drag it to turn it, scrub the timeline where there is one, and open **Code** to see exactly what draws it. The next step adds to the code above it.
+
+## 1. A box on the ground
+
+A scene holds nodes and a camera. Add a ground lattice, the axes and a box:
+
+<Demo id="core/hello" />
+
+`at` is the point the box stands on, the centre of its base. Everything you add with `s.add` is drawn together, and the camera frames whatever is there.
+
+## 2. Add more, and say what it is
+
+Add a second box, label both and join them with an arrow. `anchor` gives a point on an object that follows it if it moves, so the arrow stays attached:
+
+<Demo id="core/first-more" />
+
+Labels stay upright whatever the camera does, and `role: 'accent'` picks the theme's accent colour. Roles, not colours, are how a scene follows any theme.
+
+## 3. Make it move
+
+Animations are built from tweens and combined on a timeline. Here the things fade in one after another, the arrow draws, and the result moves:
+
+<Demo id="core/first-move" />
+
+`stagger` starts each animation a little after the last, `par` runs several at once and `seq` runs them one after another. `chapter` names a step, so a reader can jump to it.
+
+A timeline is replayed from the start to the requested time, so the picture depends only on the time. That is why you can scrub it, pause it, or draw a single frame. `tl.lockFit(s)` fixes the framing for the whole timeline so nothing is cropped when things move.
+
+## 4. Put it on a page
+
+The figure above is just the scene and its timeline. To show it on your own page, mount it on an element:
+
+```ts norun
+import { Scene, Timeline, mount } from '@@pkg@@';
+import '@@pkg@@/cseen.css';
+
+// the scene and timeline from step 3
+const el = document.querySelector('#figure')!;
+const player = mount(el, s, { timeline: tl });
+```
+
+`mount` builds the SVG once and updates only what changed. It pauses when the figure is off screen and respects the reader's reduced motion setting.
+
+To let the reader turn it, add orbit controls. Drag turns, the wheel and pinch zoom, arrow keys turn, and double click resets:
+
+```ts norun
+import { orbit } from '@@pkg@@';
+
+orbit(el.querySelector('svg')!, s, { onChange: () => player.invalidate() });
+```
+
+Use `fit: 'sphere'` in the scene when you add orbit controls: it frames the bounding sphere, so the object keeps its size however it turns.
+
+## Where to go next
+
+- [Coordinates and cameras](/start/coordinates-and-cameras/) explains where things go and how to look at them.
+- Change this scene in the [playground](/playground/) and share it as a link.
+- Browse the [gallery](/gallery/core/) for things to put in your own scene.

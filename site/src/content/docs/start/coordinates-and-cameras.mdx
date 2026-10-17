@@ -1,0 +1,88 @@
+---
+title: Coordinates and cameras
+description: The one coordinate system, and the cameras that look at it.
+sidebar:
+  order: 4
+---
+
+import Demo from '../../../components/Demo.astro';
+
+## The coordinates
+
+Every scene uses the same axes: **x to the right, y into the scene, z up**. `axes()` draws them, so a reader never has to guess.
+
+<Demo id="core/coordinates" />
+
+Objects sit on the ground. `box({ at: [x, y, 0] })` puts the centre of the box's base at that point, so `at` is where it stands. A flat diagram is a scene seen from the front, with y as depth you do not use.
+
+## Parallel cameras
+
+The default camera is parallel (axonometric): lines that are parallel in the scene stay parallel on the page. This is the look of technical illustration, and the one where placing things on planes is exact.
+
+<Demo id="core/camera-parallel" />
+
+```ts
+import { Scene } from '@@pkg@@';
+
+// 'iso' | 'front' | 'side' | 'top'
+const s = new Scene({ view: 'top' });
+// or explicit angles in degrees
+const t = new Scene({ view: { yaw: 40, pitch: 20 } });
+```
+
+Yaw turns the scene about the vertical axis. Pitch tips it towards the viewer: 0 looks along the ground, 90 looks straight down. The window controls above each demo (Iso, Front, Side, Top) set these.
+
+## Perspective
+
+For a vanishing point, use a pinhole camera. This is the same scene as above, seen from a point in space: compare the two.
+
+<Demo id="core/camera-perspective" />
+
+```ts
+import { Scene, Camera } from '@@pkg@@';
+
+const s = new Scene({
+  view: Camera.perspective({ position: [5, -9, 5], target: [0, 0, 1], fov: 35 }),
+});
+```
+
+Try the **Perspective** button on any demo. Two things behave differently under perspective: an imported SVG can only be sheared by the renderer, so it is cut into small pieces and approximated, and charts placed on planes are approximate for the same reason.
+
+## Which camera
+
+| You want | Use |
+|---|---|
+| A technical illustration, exact placement on planes | parallel: `view: 'iso'` or `{ yaw, pitch }` |
+| A flat diagram | parallel: `view: 'front'` or `'top'` |
+| Depth and a sense of space | `Camera.perspective(...)` |
+| The reader chooses the angle | either, plus [orbit controls](/start/first-scene/#4-put-it-on-a-page) |
+
+## Cameras animate
+
+A camera is animatable like anything else: `yaw`, `pitch` and `zoom` for a parallel camera, `position`, `target` and `fov` for a perspective one.
+
+```ts
+import { Scene, Timeline, tween } from '@@pkg@@';
+
+const s = new Scene();
+const tl = new Timeline();
+tl.play(tween(s.camera, { yaw: 120, pitch: 40 }, { duration: 2 }));
+```
+
+<Demo id="core/camera-move" />
+
+## Framing
+
+By default the scene is refitted to its contents every frame. Two alternatives keep the picture steady:
+
+- `tl.lockFit(scene)` fixes the framing to fit every moment of a timeline.
+- `fit: 'sphere'` frames the bounding sphere, so the object keeps its size however the camera turns. Use it with orbit controls.
+
+The figure above does both: drag it and the scene keeps its size, and the timeline never crops it.
+
+## Where to go next
+
+- [Scene and nodes](/concepts/scene-and-nodes/) explains how a scene is built and changed.
+- [Theming](/concepts/theming/) shows the three-variable contract behind every colour.
+- [Embed in plain HTML](/guides/embed-html/), [Astro](/guides/astro/) or [React](/guides/react/) put a figure on a page.
+- The [playground](/playground/) lets you change any example and share it as a link.

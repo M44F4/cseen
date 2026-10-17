@@ -1,0 +1,104 @@
+/*
+  cseen styles.
+
+  THEME CONTRACT
+  cseen does not know any theme by name. You may set up to three colours, on the figure or on any
+  parent, and everything else is derived from them:
+
+    --cn-ink      lines and text            (default: currentColor)
+    --cn-bg       the page background       (default: Canvas)
+    --cn-accent   the thing to look at      (default: #e0553b)
+
+  Optional overrides, each derived from the three above when left out:
+
+    --cn-warm --cn-cool --cn-faint --cn-grid --cn-surface --cn-term-bg --cn-term-fg --cn-s1 ... --cn-s8
+    --cn-w (line width, default 1.2)   --cn-font
+
+  The values cseen actually uses are the resolved ones, --c-ink, --c-bg, --c-accent, --c-faint,
+  --c-grid, --c-surface, --c-s1 ... --c-s8, --c-lo and --c-hi. Use these inside imported SVGs
+  (recolor: { '#111': 'var(--c-ink)' }). Do not set them yourself; set the --cn- ones.
+
+  Add your own colour role with a class, for example:
+    .cseen .cn-r-sky { --c: skyblue }
+  and use it with { role: 'sky' }.
+*/
+.cseen {
+  --c-ink: var(--cn-ink, currentColor);
+  --c-bg: var(--cn-bg, Canvas);
+  --c-accent: var(--cn-accent, #e0553b);
+  --c-faint: var(--cn-faint, color-mix(in oklab, var(--c-ink) 45%, var(--c-bg)));
+  --c-grid: var(--cn-grid, color-mix(in oklab, var(--c-ink) 16%, var(--c-bg)));
+  --c-surface: var(--cn-surface, color-mix(in oklab, var(--c-ink) 5%, var(--c-bg)));
+  --c-term-bg: var(--cn-term-bg, #15171b);
+  --c-term-fg: var(--cn-term-fg, #e8e6df);
+
+  /* data colours: a fixed fallback first, replaced below where relative colours are supported */
+  --c-s1: var(--cn-s1, var(--c-accent));
+  --c-s2: var(--cn-s2, #3b82c4);
+  --c-s3: var(--cn-s3, #d99a1f);
+  --c-s4: var(--cn-s4, #8a5cc2);
+  --c-s5: var(--cn-s5, #2fa38a);
+  --c-s6: var(--cn-s6, #c4467a);
+  --c-s7: var(--cn-s7, #7a8f2a);
+  --c-s8: var(--cn-s8, #6b7280);
+  --c-warm: var(--cn-warm, #d9822b);
+  --c-cool: var(--cn-cool, #3b82c4);
+
+  display: block; width: 100%; height: auto; color: var(--c-ink);
+}
+
+/* Series colours turn the accent around the colour wheel, keeping its lightness and strength, so they
+   suit the theme without being listed by name. Ramps run from the background to the accent. */
+@supports (color: oklch(from red l c h)) {
+  .cseen {
+    --c-s2: var(--cn-s2, oklch(from var(--c-accent) l c calc(h + 45)));
+    --c-s3: var(--cn-s3, oklch(from var(--c-accent) l c calc(h + 90)));
+    --c-s4: var(--cn-s4, oklch(from var(--c-accent) l c calc(h + 135)));
+    --c-s5: var(--cn-s5, oklch(from var(--c-accent) l c calc(h + 180)));
+    --c-s6: var(--cn-s6, oklch(from var(--c-accent) l c calc(h + 225)));
+    --c-s7: var(--cn-s7, oklch(from var(--c-accent) l c calc(h + 270)));
+    --c-s8: var(--cn-s8, oklch(from var(--c-accent) l calc(c * 0.25) h));
+    --c-warm: var(--cn-warm, oklch(from var(--c-accent) l c 60));
+    --c-cool: var(--cn-cool, oklch(from var(--c-accent) l c 240));
+  }
+}
+/* ramp ends for continuous colour: --c-lo is the quiet end, --c-hi the strong end */
+.cseen { --c-lo: color-mix(in oklab, var(--c-bg) 84%, var(--c-ink)); --c-hi: var(--c-accent); }
+
+.cseen .cn-r-ink    { --c: var(--c-ink); }
+.cseen .cn-r-faint  { --c: var(--c-faint); }
+.cseen .cn-r-accent { --c: var(--c-accent); }
+.cseen .cn-r-grid   { --c: var(--c-grid); }
+.cseen .cn-r-warm   { --c: var(--c-warm); }
+.cseen .cn-r-cool   { --c: var(--c-cool); }
+.cseen .cn-r-s1 { --c: var(--c-s1); } .cseen .cn-r-s2 { --c: var(--c-s2); }
+.cseen .cn-r-s3 { --c: var(--c-s3); } .cseen .cn-r-s4 { --c: var(--c-s4); }
+.cseen .cn-r-s5 { --c: var(--c-s5); } .cseen .cn-r-s6 { --c: var(--c-s6); }
+.cseen .cn-r-s7 { --c: var(--c-s7); } .cseen .cn-r-s8 { --c: var(--c-s8); }
+
+.cseen .sz {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: var(--cn-w, 1.2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cseen .cn-f { stroke-width: calc(var(--cn-w, 1.2) * 0.8); }
+.cseen .cn-dot  { fill: var(--c); stroke: none; }
+.cseen .cn-head { fill: var(--c); stroke: none; }
+.cseen .cn-t {
+  fill: var(--c);
+  stroke: none;
+  font: 500 7.5px/1 var(--cn-font, ui-monospace, SFMono-Regular, Menlo, monospace);
+  letter-spacing: 0.02em;
+}
+.cseen .cn-gl { fill: none; stroke: var(--c-grid); stroke-width: 0.6; }
+.cseen .cn-gl-line { stroke-linecap: butt; }
+
+/* dashes that travel along a line: the flow option on a path */
+.cseen .cn-flow { animation: cn-flow var(--cn-flow-t, 1s) linear infinite; }
+@keyframes cn-flow { to { stroke-dashoffset: calc(var(--cn-flow-p, 6) * -1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cseen * { transition: none !important; animation: none !important; }
+}

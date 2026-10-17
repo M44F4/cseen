@@ -1,0 +1,55 @@
+---
+title: Embed in plain HTML
+description: Put a figure on any page with one script.
+sidebar:
+  order: 1
+---
+
+You do not need a framework. Build the library once, copy `dist/` next to your page, and import it as a module.
+
+```html
+<link rel="stylesheet" href="./dist/cseen.css">
+
+<figure id="figure" style="--cn-ink:#17181a; --cn-bg:#f6f5f1; --cn-accent:#0d8f6b"></figure>
+
+<script type="module">
+  import { Scene, Timeline, box, ground, fadeIn, mount } from './dist/index.js';
+
+  const s = new Scene({ title: 'A box fading in' });
+  s.add(ground());
+  const b = s.add(box({ at: [0, 0, 0], role: 'accent' }));
+
+  const tl = new Timeline();
+  tl.play(fadeIn(b));
+
+  mount(document.querySelector('#figure'), s, { timeline: tl });
+</script>
+```
+
+The three variables on the figure are the whole theme. Put them on `body` instead and everything on the page follows.
+
+## Importing a pack
+
+Each pack has its own file, so you load only what you use:
+
+```html
+<script type="module">
+  import { Scene } from './dist/index.js';
+  import { monitor } from './dist/devices/index.js';
+</script>
+```
+
+## Making the first paint instant
+
+`mount` builds the SVG in the browser. For a first paint without any script, render the still on the server (see [Render on the server](/guides/server-rendering/)) and put it in the page. When the script runs, `mount` takes over the markup of the same scene.
+
+```html
+<figure id="figure">
+  <!-- the output of renderStill(scene) -->
+  <svg class="cseen" viewBox="0 0 320 200">...</svg>
+</figure>
+```
+
+## Accessibility
+
+Give the scene a `title` (and a `desc` for something longer). They become the figure's accessible name and description. A scene without a title is hidden from assistive technology. Offscreen figures stop animating, and a visitor who prefers reduced motion sees the final frame instead of the animation.

@@ -1,0 +1,55 @@
+---
+title: Troubleshooting
+description: What to check when a figure is blank, wrongly coloured, in the wrong order or missing in a build.
+sidebar:
+  order: 9
+---
+
+Start here when something does not look right. Every answer comes from how @@name@@ works, so each links to the page that explains it.
+
+## My figure is blank
+
+- **Nothing was added.** A scene with no nodes draws nothing. Add at least `ground()` and one object.
+- **The element is not there yet.** `mount(document.querySelector('#figure'), s)` needs the element to exist. Run it after the page has loaded.
+- **The element has no size.** The figure fills its parent. Give the parent a width, or set `size` on the scene.
+- **A timeline starts from nothing.** If everything fades in, the first frame is empty by design. Scrub the timeline, or call `renderStill(s, tl)` to see the end.
+- **The stylesheet is missing.** Import `@@pkg@@/cseen.css`, or lines and fills have no colours.
+
+## The colours are wrong, or the theme does not apply
+
+- **A theme is three variables.** Set `--cn-ink`, `--cn-bg` and `--cn-accent` on the figure or any parent. Nothing else needs changing. See [theming](/concepts/theming/).
+- **You passed a colour.** Pass a role (`role: 'accent'`), not a hex value. Roles are what CSS can restyle.
+- **Dark mode does not follow.** Variables are read where the figure is. Set them under your dark selector too.
+- **Older browsers.** Series colours use relative colour syntax; older browsers fall back to a fixed palette. See [theming](/concepts/theming/#older-browsers).
+
+## Faces overlap in the wrong order
+
+SVG has no depth buffer, so faces are sorted back to front. That works for floors, walls, boxes and keyboards. Faces that pierce each other cannot be ordered correctly yet and show a ragged edge. Help the sorter: keep related things in a `group` (a group is ordered as one unit) and use `layer` to draw whole groups before or after others. Details in [depth sorting and limits](/concepts/depth-and-limits/).
+
+## It is cropped, or jumps when it moves
+
+- **Framing follows the contents.** Use `tl.lockFit(s)` so one frame fits the whole timeline.
+- **Turning changes the size.** Use `fit: 'sphere'` with orbit controls so the object keeps its size however it turns.
+
+## The text is the wrong size or runs out of its box
+
+`write` wraps to its box. Give it a `size` and a `fontSize` (`'sm'`, `'md'`, `'lg'`, a number, or `lines`). See [text and code on planes](/concepts/text-and-code/).
+
+## A construction part does not show, or reverse throws
+
+A part with `draw: 0` and no tween that raises it is not painted, and neither is one with `op: 0` or `line: 0` and no fill. Check the starting `props`, and that a tween takes them to a visible value.
+
+`reverse` throws `cseen: reverse needs a "from"` when a tween has no `from`, and `needs literal "to" values` when a `to` is a function. Give the tween a `from` and a plain value. See [Constructions](/concepts/constructions/).
+
+## A diagram's edges or boxes look wrong
+
+Boxes are sized from the number of characters in the longest line of the label, on the assumption of a monospace font. Break a long label across lines with `\n`. Edges follow the layout, not the nodes, so moving a node by hand leaves its edges behind: change the diagram instead. If a timeline starts with the nodes in the wrong place, add every node and edge before you create the timeline. See [Diagrams and flow](/concepts/flow/).
+
+## It works in dev but not in the build
+
+- **Server rendering has no DOM.** `mount` and `orbit` need a browser. On the server use `renderStill`. See [render on the server](/guides/server-rendering/).
+- **The site is under a path.** If you serve from a sub-path, make sure the stylesheet and your links use it.
+
+## An example in the playground gives an error
+
+The playground runs TypeScript with only the library imported. It needs a scene named `s`, and a timeline named `tl` if you want one. Errors name the line. A missing import is reported with the line to add. Code that takes more than three seconds to run is stopped with a message that names the loop, so a loop that never ends cannot freeze the page. Only loops while your code first runs are timed: a function the scene keeps and calls every frame is not.

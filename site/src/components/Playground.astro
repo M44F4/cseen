@@ -1,0 +1,62 @@
+---
+import Flag from './Flag.astro';
+// The editable playground. Examples come from the demo registry, so they are the same code the docs show.
+import { PACKS, inPack } from '../demos/index.ts';
+import Loader from './Loader.astro';
+import { ICONS, VIEWS } from './demo/chrome.ts';
+const groups = PACKS.map((p) => ({ title: p.title, demos: inPack(p.id) })).filter((g) => g.demos.length);
+---
+<Flag name="cn-wide" />
+<cseen-playground>
+  <div class="pg">
+    <div class="pg-bar">
+      <label class="pg-pick">Example
+        <select class="pg-examples">
+          <option value="">Your code</option>
+          {groups.map((g) => (
+            <optgroup label={g.title}>
+              {g.demos.map((d) => <option value={d.id}>{d.title}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+      <label class="pg-check"><input type="checkbox" class="pg-orbit" checked /> Orbit</label>
+      <button type="button" data-act="run">Run</button>
+      <button type="button" data-act="reset">Reset</button>
+      <button type="button" data-act="share">Copy link</button>
+      <span class="pg-status" role="status" aria-live="polite"></span>
+      <button type="button" class="pg-fs" data-full="pg" aria-pressed="false" aria-label="Full screen: code and preview" title="Full screen: code and preview"><Fragment set:html={ICONS.full} /></button>
+    </div>
+    <div class="pg-split">
+      <div class="pg-editor"><button type="button" class="pg-fs pg-corner" data-full="code" aria-pressed="false" aria-label="Full screen: code" title="Full screen: code"><Fragment set:html={ICONS.full} /></button><div class="cn-loading-fill"><Loader size={5.5} label="Loading the editor" /></div></div>
+      <div class="pg-out">
+        <div class="pg-notice" role="status" hidden><span>This code came from a link, so it has not run yet. Read it, then run it.</span><button type="button" data-act="run">Run it</button></div>
+        <div class="dm-view pg-view" style="aspect-ratio: 320 / 200"><button type="button" class="pg-fs pg-corner" data-full="out" aria-pressed="false" aria-label="Full screen: preview" title="Full screen: preview"><Fragment set:html={ICONS.full} /></button></div>
+        <div class="dm-tools pg-tools">
+          <div class="dm-views" role="group" aria-label="View">{VIEWS.map(([k, t]) => <button type="button" data-view={k} aria-pressed="false">{t}</button>)}</div>
+          <div class="pg-play dm-play" hidden>
+            <button type="button" data-act="play">Pause</button>
+            <input type="range" data-act="scrub" min="0" max="1" step="0.01" value="0" aria-label="Time" />
+            <span class="dm-clock" aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="pg-error" role="alert" hidden></div>
+        <p class="dm-hint">Define a scene named <code>s</code> and, if you like, a timeline named <code>tl</code>. Drag the figure to turn it. Control or Command plus Enter runs at once.</p>
+      </div>
+    </div>
+  </div>
+</cseen-playground>
+
+<script>
+  class CseenPlayground extends HTMLElement {
+    private stop?: () => void;
+    async connectedCallback() {
+      const { start } = await import('./playground/playground.ts');
+      // the element may have left the page while the editor code was loading
+      const root = this.querySelector<HTMLElement>('.pg');
+      if (this.isConnected && root && !this.stop) this.stop = start(root);
+    }
+    disconnectedCallback() { this.stop?.(); this.stop = undefined; }
+  }
+  if (!customElements.get('cseen-playground')) customElements.define('cseen-playground', CseenPlayground);
+</script>

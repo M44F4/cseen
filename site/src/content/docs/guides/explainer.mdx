@@ -1,0 +1,49 @@
+---
+title: Build an explainer with chapters
+description: A figure told in steps, with a button for the next one.
+sidebar:
+  order: 6
+---
+
+import Demo from '../../../components/Demo.astro';
+
+An explainer is a timeline with named steps. The reader presses next, the figure plays to the end of the step, and stops.
+
+```ts
+import { Scene, Timeline, box, ground, label, line, fadeIn, draw, moveBy, stagger } from '@@pkg@@';
+
+const s = new Scene({ fit: 'sphere', title: 'How a request travels' });
+s.add(ground());
+const client = s.add(box({ at: [-3, 0, 0], size: 1 }));
+const server = s.add(box({ at: [3, 0, 0], size: 1, role: 'accent' }));
+const wire = s.add(line(client.pt('center'), server.pt('center')));
+const note = s.add(label('request', [0, 0, 1.4], { anchor: 'middle' }));
+
+const tl = new Timeline();
+tl.chapter('machines').play(stagger(0.3, fadeIn(client), fadeIn(server)));
+tl.chapter('connect').play(draw(wire, 0.8));
+tl.chapter('label').play(fadeIn(note));
+tl.chapter('move').play(moveBy(server, [0, 2, 0], 1));
+tl.lockFit(s);
+```
+
+`chapter('name')` marks the time where the next animation starts. Each chapter is a step.
+
+## Driving it from buttons
+
+```ts norun
+const player = mount(el, s, { timeline: tl, autoplay: false });
+
+nextButton.onclick = () => player.step(1);
+backButton.onclick = () => player.step(-1);
+```
+
+`step()` jumps to the start of the next (or previous) chapter. To play up to the end of a step instead of jumping, seek there with `player.seek(t)` and play from it; `tl.chapters` lists each name and time.
+
+## Keep it readable
+
+- Use `lockFit` (or `fit: 'sphere'`) so the picture does not change size between steps.
+- One idea per chapter. Fade things in in the order the reader needs them.
+- Give the scene a `title` and a `desc`, and put the explanation in the text beside it, not only in the figure.
+
+<Demo id="core/buildup" />

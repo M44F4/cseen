@@ -1,0 +1,7 @@
+---
+// The cseen loader: the cseen cube spinning. `size` is the height in rem.
+import { LOADER } from '../lib/loader.ts';
+interface Props { size?: number; label?: string }
+const { size = 3, label = 'Loading' } = Astro.props;
+---
+<span class="cn-loading" style={`--cn-loader-h:${size}rem`} set:html={LOADER.replace('aria-label="Loading"', `aria-label="${label}"`)} />

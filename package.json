@@ -1,0 +1,83 @@
+{
+  "name": "cseen",
+  "version": "0.1.0",
+  "description": "Describe a scene in TypeScript and get SVG that follows your CSS theme, rendered on the server or played live in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "author": "M44F4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/M44F4/cseen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/M44F4/cseen/issues"
+  },
+  "homepage": "https://github.com/M44F4/cseen#readme",
+  "keywords": [
+    "svg",
+    "illustration",
+    "animation",
+    "3d",
+    "diagram",
+    "chart",
+    "theming",
+    "css",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./devices": {
+      "types": "./dist/devices/index.d.ts",
+      "import": "./dist/devices/index.js"
+    },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js"
+    },
+    "./waves": {
+      "types": "./dist/waves/index.d.ts",
+      "import": "./dist/waves/index.js"
+    },
+    "./optics": {
+      "types": "./dist/optics/index.d.ts",
+      "import": "./dist/optics/index.js"
+    },
+    "./charts": {
+      "types": "./dist/charts/index.d.ts",
+      "import": "./dist/charts/index.js"
+    },
+    "./math": {
+      "types": "./dist/math/index.d.ts",
+      "import": "./dist/math/index.js"
+    },
+    "./flow": {
+      "types": "./dist/flow/index.d.ts",
+      "import": "./dist/flow/index.js"
+    },
+    "./cseen.css": "./dist/cseen.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && mkdir -p dist && cp src/theme/cseen.css dist/cseen.css",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/",
+    "docs:dev": "npm --prefix site run dev",
+    "docs:serve": "npm --prefix site run serve",
+    "docs:build": "npm --prefix site run build",
+    "docs:check": "npm --prefix site run check",
+    "docs:api": "npm --prefix site run api:check",
+    "docs:test": "npm --prefix site test",
+    "readme:art": "node scripts/readme-art.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^5.9.3"
+  }
+}

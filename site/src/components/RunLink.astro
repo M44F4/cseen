@@ -1,0 +1,11 @@
+---
+// A link under an example that opens the same code in the playground, ready to run and change.
+import { toPlayground } from '../lib/links.ts';
+interface Props { code: string }
+const { code } = Astro.props;
+---
+<a class="run-link" href={toPlayground(code)}>Run it in the playground →</a>
+<style>
+  .run-link { display: inline-block; margin-block: 0.2rem 1rem; font-size: var(--sl-text-sm); font-weight: 600; color: var(--sl-color-text-accent); text-decoration: none; }
+  .run-link:hover { text-decoration: underline; }
+</style>

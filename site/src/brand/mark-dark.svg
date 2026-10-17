@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-417.857 -482.5 835.715 956.25" width="835.715" height="956.25" role="img" aria-labelledby="t d">
+  <title id="t">cseen mark, for a dark page</title>
+  <desc id="d">cseen mark. White #F2F2F2 and green #1FD493, for a dark page. A cube seen from a corner: its three faces are the letters c, e and e, and the thin gaps between them are its edges.</desc>
+  <g id="logo">
+    <g id="mark">
+      <path id="cube-c" fill="#1FD493" d="M0 -482.5L402.702 -250L330.215 -208.15L-72.486 -440.65ZM0 -482.5L72.486 -440.65L-330.215 -208.15L-402.702 -250ZM-330.215 -291.85L72.486 -59.35L0 -17.5L-402.702 -250Z"/>
+      <path id="cube-e-left" fill="#F2F2F2" d="M-381.614 -12.175L-15.155 199.4L-15.155 283.1L-381.614 71.525ZM-87.642 -33.1L-15.155 8.75L-15.155 283.1L-87.642 241.25ZM-417.857 -223.75L-15.155 8.75L-15.155 92.45L-417.857 -140.05ZM-417.857 -223.75L-345.371 -181.9L-345.371 283.1L-417.857 241.25ZM-417.857 157.55L-15.155 390.05L-15.155 473.75L-417.857 241.25Z"/>
+      <path id="cube-e-right" fill="#F2F2F2" d="M51.399 178.475L417.857 -33.1L417.857 50.6L51.399 262.175ZM345.371 -181.9L417.857 -223.75L417.857 50.6L345.371 92.45ZM15.155 8.75L417.857 -223.75L417.857 -140.05L15.155 92.45ZM15.155 8.75L87.642 -33.1L87.642 431.9L15.155 473.75ZM15.155 390.05L417.857 157.55L417.857 241.25L15.155 473.75Z"/>
+    </g>
+  </g>
+</svg>
